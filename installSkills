@@ -1,0 +1,313 @@
+#!/usr/bin/env -S java --source 25
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.List;
+
+String name = MethodHandles.lookup().lookupClass().getName();
+String version = "2026-07-05.2";
+Path repositoryRoot = Path.of(System.getProperty("jdk.launcher.sourcefile")).toAbsolutePath().normalize().getParent();
+Path sourceSkillsDirectory = repositoryRoot.resolve("skills");
+Path defaultTargetDirectory = Path.of(System.getProperty("user.home"), ".agents", "skills");
+BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+
+void main(String... args) throws Exception {
+    var options = parse(args);
+    if (options.help()) {
+        usage();
+        return;
+    }
+    if (options.version()) {
+        IO.println(name + " " + version);
+        return;
+    }
+
+    if (!Files.isDirectory(sourceSkillsDirectory)) {
+        System.err.println("Error: skills source directory not found: " + sourceSkillsDirectory);
+        System.err.println("Place this script in the repository root before running it.");
+        System.exit(1);
+    }
+
+    var skills = discoverSkills();
+    if (skills.isEmpty()) {
+        System.err.println("Error: no skills found under: " + sourceSkillsDirectory);
+        System.err.println("Each skill directory must contain a SKILL.md file.");
+        System.exit(1);
+    }
+
+    Files.createDirectories(options.targetDirectory());
+
+    IO.println();
+    IO.println("Skills development install");
+    IO.println("Source: " + sourceSkillsDirectory);
+    IO.println("Target: " + options.targetDirectory());
+    IO.println("Mode:   " + options.mode().value);
+    IO.println();
+
+    var summary = new InstallSummary(0, 0, 0, 0, 0, 0, 0);
+    for (var skill : skills) {
+        if (confirmInstall(skill)) {
+            summary = summary.withInstalledSkill();
+            summary = summary.plus(installSkill(skill, options));
+        } else {
+            IO.println("  skip            " + skill.name());
+            summary = summary.withSkippedSkill();
+        }
+        IO.println();
+    }
+
+    IO.println("Summary");
+    IO.println("  skills installed:    " + summary.skillsInstalled());
+    IO.println("  skills skipped:      " + summary.skillsSkipped());
+    IO.println("  symlinks removed:    " + summary.removedLinks());
+    IO.println("  directories removed: " + summary.removedDirectories());
+    IO.println("  files skipped:       " + summary.skippedFiles());
+    IO.println("  links created:       " + summary.linksCreated());
+    IO.println("  copies created:      " + summary.copiesCreated());
+    IO.println();
+    IO.println("Done.");
+}
+
+Options parse(String... args) {
+    var targetDirectory = defaultTargetDirectory;
+    var mode = InstallMode.symlink;
+
+    for (var index = 0; index < args.length; index++) {
+        switch (args[index]) {
+            case "--copy" -> mode = InstallMode.copy;
+            case "--target" -> {
+                if (index + 1 >= args.length || args[index + 1].isBlank() || args[index + 1].startsWith("-")) {
+                    failUsage("Error: --target requires a directory path.");
+                }
+                targetDirectory = Path.of(args[++index]).toAbsolutePath().normalize();
+            }
+            case "--help", "-h" -> {
+                return new Options(targetDirectory, mode, true, false);
+            }
+            case "--version", "-version" -> {
+                return new Options(targetDirectory, mode, false, true);
+            }
+            default -> failUsage("Error: unknown option or argument: " + args[index]);
+        }
+    }
+
+    return new Options(targetDirectory, mode, false, false);
+}
+
+void failUsage(String message) {
+    System.err.println(message);
+    System.err.println();
+    System.err.println(usageText());
+    System.exit(2);
+}
+
+void usage() {
+    IO.println(usageText());
+}
+
+String usageText() {
+    return """
+            Usage: %s [--copy] [--target DIR] [--help] [--version]
+
+            Install selected local skills from the repository skills directory as symbolic links by default.
+            The installer prompts before installing each discovered skill.
+
+            Options:
+              --copy        Copy the skill files instead of creating symbolic links.
+              --target DIR  Destination skills directory. Default: %s
+              --help        Show this help message.
+              --version     Show version information.
+            """.formatted(name, defaultTargetDirectory);
+}
+
+List<Skill> discoverSkills() throws IOException {
+    try (var paths = Files.list(sourceSkillsDirectory)) {
+        return paths
+                .filter(Files::isDirectory)
+                .filter(this::isSkillDirectory)
+                .map(path -> new Skill(path.getFileName().toString(), path))
+                .sorted(Comparator.comparing(Skill::name))
+                .toList();
+    }
+}
+
+boolean isSkillDirectory(Path path) {
+    return Files.isRegularFile(path.resolve("SKILL.md"));
+}
+
+boolean confirmInstall(Skill skill) throws IOException {
+    IO.println("Install skill '%s'? [y/N]".formatted(skill.name()));
+    var answer = input.readLine();
+    return answer != null && List.of("y", "yes").contains(answer.strip().toLowerCase());
+}
+
+InstallSummary installSkill(Skill skill, Options options) throws IOException {
+    IO.println("Installing skill: " + skill.name());
+    IO.println("Cleaning previous entries for " + skill.name());
+    var removal = cleanPreviousEntries(options.targetDirectory(), skill.name());
+
+    var creation = switch (options.mode()) {
+        case symlink -> createSymbolicLink(skill, options.targetDirectory());
+        case copy -> copySkill(skill, options.targetDirectory());
+    };
+
+    return new InstallSummary(
+            0,
+            0,
+            removal.removedLinks(),
+            removal.removedDirectories(),
+            removal.skippedFiles(),
+            creation.links(),
+            creation.copies());
+}
+
+RemovalSummary cleanPreviousEntries(Path targetDirectory, String skillName) throws IOException {
+    var entries = previousEntries(targetDirectory, skillName);
+    if (entries.isEmpty()) {
+        IO.println("  none");
+        return new RemovalSummary(0, 0, 0);
+    }
+
+    var removedLinks = 0;
+    var removedDirectories = 0;
+    var skippedFiles = 0;
+
+    for (var entry : entries) {
+        var entryName = entry.getFileName();
+        if (Files.isSymbolicLink(entry)) {
+            IO.println("  remove symlink  " + entryName);
+            Files.delete(entry);
+            removedLinks++;
+        } else if (Files.isDirectory(entry)) {
+            IO.println("  remove dir      " + entryName);
+            deleteDirectory(entry);
+            removedDirectories++;
+        } else {
+            IO.println("  skip file       " + entryName);
+            skippedFiles++;
+        }
+    }
+
+    return new RemovalSummary(removedLinks, removedDirectories, skippedFiles);
+}
+
+List<Path> previousEntries(Path targetDirectory, String skillName) throws IOException {
+    try (var paths = Files.list(targetDirectory)) {
+        return paths
+                .filter(path -> isPreviousSkillEntry(path, skillName))
+                .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                .toList();
+    }
+}
+
+boolean isPreviousSkillEntry(Path path, String skillName) {
+    var fileName = path.getFileName().toString();
+    return fileName.equals(skillName) || fileName.startsWith(skillName + "-");
+}
+
+CreationSummary createSymbolicLink(Skill skill, Path targetDirectory) throws IOException {
+    IO.println("Creating symbolic link");
+    Files.createSymbolicLink(targetDirectory.resolve(skill.name()), skill.path());
+    IO.println("  link            " + skill.name());
+    return new CreationSummary(1, 0);
+}
+
+CreationSummary copySkill(Skill skill, Path targetDirectory) throws IOException {
+    IO.println("Copying skill files");
+    copyDirectory(skill.path(), targetDirectory.resolve(skill.name()));
+    IO.println("  copy            " + skill.name());
+    return new CreationSummary(0, 1);
+}
+
+void copyDirectory(Path source, Path target) throws IOException {
+    try (var paths = Files.walk(source)) {
+        for (var path : paths.toList()) {
+            var destination = target.resolve(source.relativize(path));
+            if (Files.isDirectory(path)) {
+                Files.createDirectories(destination);
+            } else {
+                Files.copy(path, destination);
+            }
+        }
+    }
+}
+
+void deleteDirectory(Path directory) throws IOException {
+    try (var paths = Files.walk(directory)) {
+        var deletionOrder = paths.sorted(Comparator.reverseOrder()).toList();
+        for (var path : deletionOrder) {
+            Files.delete(path);
+        }
+    }
+}
+
+record Options(Path targetDirectory, InstallMode mode, boolean help, boolean version) {
+}
+
+record Skill(String name, Path path) {
+}
+
+record RemovalSummary(int removedLinks, int removedDirectories, int skippedFiles) {
+}
+
+record CreationSummary(int links, int copies) {
+}
+
+record InstallSummary(
+        int skillsInstalled,
+        int skillsSkipped,
+        int removedLinks,
+        int removedDirectories,
+        int skippedFiles,
+        int linksCreated,
+        int copiesCreated) {
+
+    InstallSummary withInstalledSkill() {
+        return new InstallSummary(
+                this.skillsInstalled + 1,
+                this.skillsSkipped,
+                this.removedLinks,
+                this.removedDirectories,
+                this.skippedFiles,
+                this.linksCreated,
+                this.copiesCreated);
+    }
+
+    InstallSummary withSkippedSkill() {
+        return new InstallSummary(
+                this.skillsInstalled,
+                this.skillsSkipped + 1,
+                this.removedLinks,
+                this.removedDirectories,
+                this.skippedFiles,
+                this.linksCreated,
+                this.copiesCreated);
+    }
+
+    InstallSummary plus(InstallSummary other) {
+        return new InstallSummary(
+                this.skillsInstalled + other.skillsInstalled,
+                this.skillsSkipped + other.skillsSkipped,
+                this.removedLinks + other.removedLinks,
+                this.removedDirectories + other.removedDirectories,
+                this.skippedFiles + other.skippedFiles,
+                this.linksCreated + other.linksCreated,
+                this.copiesCreated + other.copiesCreated);
+    }
+}
+
+enum InstallMode {
+    symlink("symlink"),
+    copy("copy");
+
+    String value;
+
+    InstallMode(String value) {
+        this.value = value;
+    }
+}
