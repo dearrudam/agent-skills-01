@@ -7,6 +7,7 @@ Reusable agent skills for AI-assisted software delivery workflows, Java/Quarkus 
 | Skill | Purpose |
 | --- | --- |
 | [`sldd`](skills/sldd/README.md) | Routes Spec Loops Driven Development workflows through gated intent, design, test, implementation, and verification steps. |
+| [`sdd4j-package-by-feature`](skills/sdd4j-package-by-feature/SKILL.md) | Maps SDD4J capabilities to co-located Java feature packages. |
 | [`quarkus-jnosql`](skills/quarkus-jnosql/SKILL.md) | Helps create, review, migrate, troubleshoot, or explain Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
 | [`conventional-commit`](skills/conventional-commit/SKILL.md) | Analyzes staged git diffs and generates Conventional Commit messages for committing changes. |
 
