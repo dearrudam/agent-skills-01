@@ -9,6 +9,7 @@ Reusable agent skills for AI-assisted software delivery workflows, Java/Quarkus 
 | [`sldd`](skills/sldd/README.md) | Routes Spec Loops Driven Development workflows through gated intent, design, test, implementation, and verification steps. |
 | [`sdd4j-package-by-feature`](skills/sdd4j-package-by-feature/SKILL.md) | Maps SDD4J capabilities to co-located Java feature packages. |
 | [`sdd4j-package-by-layer`](skills/sdd4j-package-by-layer/SKILL.md) | Maps SDD4J capabilities to layered Java projects with controller/service/repository/model-style packages. |
+| [`sdd4j-bce`](skills/sdd4j-bce/SKILL.md) | Maps SDD4J capabilities to Boundary-Control-Entity business components with `boundary`, `control`, and `entity` layers. |
 | [`quarkus-jnosql`](skills/quarkus-jnosql/SKILL.md) | Helps create, review, migrate, troubleshoot, or explain Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
 | [`conventional-commit`](skills/conventional-commit/SKILL.md) | Analyzes staged git diffs and generates Conventional Commit messages for committing changes. |
 
