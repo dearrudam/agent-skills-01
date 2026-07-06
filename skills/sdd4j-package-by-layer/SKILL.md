@@ -13,6 +13,19 @@ Map a Java capability spec to classes spread across technical layer packages. Th
 
 Compose it with `sdd4j` for spec workflow and with a stack skill for framework idioms and verification.
 
+Use this adapter only when the project accepts strict declared mapping: one SDD4J capability maps to one spec package plus the layer classes selected by the configured capability-to-class rule. Guessing by class names is a fallback for setup discovery, not a stable operating mode.
+
+## Architecture Invariants
+
+- The project or module has `sdd4j-package-by-layer` as its primary SDD4J architecture adapter.
+- One SDD4J capability maps to one spec package and one declared set of layer classes.
+- The spec package is the capability identity even when implementation code lives elsewhere.
+- The capability spec lives in the spec package's `package-info.java`.
+- Controller, service, repository, model, domain, DTO, and infrastructure packages are interpreted only through the project mapping.
+- A class belongs to a capability only when the configured mapping says it does.
+- Shared models and infrastructure must be declared as shared, excluded from capability drift checks, or mapped explicitly.
+- Do not mix this adapter with feature-package or BCE mapping inside the same capability.
+
 ## Default Layout
 
 Use this shape only when the project does not declare a different mapping:
@@ -34,7 +47,7 @@ src/main/java/<base>/model/
   <DomainType>.java
 ```
 
-The spec package is a contract home for the capability. The implementation may live in multiple layer packages.
+The spec package is a contract home for the capability. The implementation may live in multiple layer packages, but only through a stable declared mapping.
 
 ## SDD4J Mapping
 
@@ -86,8 +99,20 @@ Detect code-to-spec drift:
 - A mapped public entrypoint or service operation has no `## Boundary` operation.
 - A mapped domain/model/entity class is contract-relevant but absent from `## Entities`.
 - A test references a requirement id not present in the capability spec.
+- A class appears to implement the capability but is not covered by any declared mapping rule.
 
 When drift is ambiguous because the layer mapping is weak, report uncertainty and ask for a project mapping update instead of editing code or the spec speculatively.
+
+## Fit And Rejection Rules
+
+This adapter fits existing layered Java applications where capability code is intentionally spread across technical packages and the project can state a stable capability-to-class mapping.
+
+Reject or ask for a different mapping when:
+
+- The project cannot express how classes map to capabilities.
+- A capability is better represented by a self-contained package; use `sdd4j-package-by-feature` for new code.
+- The project requires BCE semantics with `boundary`, `control`, and `entity` layers per business component; use `sdd4j-bce`.
+- Different modules use different architectures without explicit routing in `AGENTS.md`.
 
 ## AGENTS.md Mapping Template
 
@@ -96,6 +121,7 @@ When drift is ambiguous because the layer mapping is weak, report uncertainty an
 
 Architecture layout:
 - skill: `sdd4j-package-by-layer`
+- scope: primary project architecture
 - source root: `src/main/java`
 - base package: `com.acme`
 - spec package pattern: `com.acme.capabilities.<capability>`

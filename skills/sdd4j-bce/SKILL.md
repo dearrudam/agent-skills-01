@@ -13,6 +13,34 @@ Map a Java capability spec to a Boundary-Control-Entity business component. This
 
 Compose it with `sdd4j` for spec workflow and with a Java stack skill for implementation idioms and verification.
 
+Use this adapter only when the project accepts strict BCE mapping. For Java BCE projects, `sdd4j + sdd4j-bce + <stack>` should be behaviorally equivalent to an integrated spec-driven BCE workflow while preserving SDD4J's pluggable architecture model.
+
+## Architecture Invariants
+
+- The project or module has `sdd4j-bce` as its primary SDD4J architecture adapter.
+- One SDD4J capability maps to one BCE business component.
+- The capability name is the BC name unless `AGENTS.md` declares a concrete naming rule.
+- The component package is the BC ownership boundary.
+- The capability spec lives in the component package's `package-info.java`.
+- `## Boundary` maps only to the component's boundary layer.
+- `## Requirements` maps to behavior and traceable tests.
+- `## Entities` maps to contract-relevant domain/entity types in the entity layer.
+- `control` is implementation detail and never gets a spec section.
+- Do not mix this adapter with feature-package or generic layered mapping inside the same capability.
+
+## BCE Parity
+
+When composed with SDD4J, this adapter must preserve BCE behavior:
+
+| BCE rule | SDD4J+BCE realization |
+| --- | --- |
+| Spec is the boundary contract | `package-info.java` is the component contract |
+| One capability equals one BC | Capability name resolves to one component package |
+| Boundary operations are public contract | `## Boundary` maps to boundary-layer operations |
+| Requirements are mandatory behavior | `## Requirements` maps to implementation and tests |
+| Entities are contract-relevant domain concepts | `## Entities` maps to entity-layer types |
+| Control is implementation | No `## Control` section is allowed |
+
 ## Default Layout
 
 ```text
@@ -25,7 +53,7 @@ src/main/java/<base>/<component>/
 src/test/java/<base>/<component>/
 ```
 
-The component package is the business component. The final package segment is the component name unless `AGENTS.md` declares another mapping.
+The component package is the business component. The final package segment is the component name unless `AGENTS.md` declares another mapping. A project that cannot identify one component package per capability is not using strict BCE for SDD4J purposes.
 
 ## SDD4J Mapping
 
@@ -81,8 +109,21 @@ Detect code-to-spec drift:
 - A public boundary-layer operation has no matching `## Boundary` operation.
 - A contract-relevant entity-layer type is absent from `## Entities`.
 - A test references a requirement id not present in the component spec.
+- Contract-relevant component behavior exists outside `boundary`, `control`, or `entity` without an explicit project exception.
 
 Surface inverse drift to the user. Do not silently expand the spec to match code.
+
+## Fit And Rejection Rules
+
+This adapter fits Java projects that intentionally organize capabilities as BCE business components with component-local `boundary`, `control`, and `entity` layers.
+
+Reject or ask for a different mapping when:
+
+- A capability cannot be mapped to one business component.
+- Component packages do not own their boundary/control/entity structure.
+- Operations are primarily owned by global controller/service/repository layers; use `sdd4j-package-by-layer`.
+- Capabilities are primarily self-contained feature packages without BCE layer semantics; use `sdd4j-package-by-feature`.
+- Multiple modules use different architectures without explicit routing in `AGENTS.md`.
 
 ## Cross-Component Rules
 
@@ -95,6 +136,7 @@ SDD4J specs describe one component at a time. Cross-component calls, events, sha
 
 Architecture layout:
 - skill: `sdd4j-bce`
+- scope: primary project architecture
 - source root: `src/main/java`
 - base package: `com.acme`
 - component package pattern: `com.acme.<component>`

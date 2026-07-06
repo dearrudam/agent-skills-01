@@ -11,6 +11,18 @@ metadata:
 
 Map a Java capability to one feature-owned package. This skill owns architecture layout only. Compose it with `sdd4j` for spec workflow and with a stack skill for framework idioms and verification.
 
+Use this adapter only when the project accepts strict feature-package ownership: one SDD4J capability maps to one feature package, and contract-relevant code for that capability stays in or below that package unless `AGENTS.md` declares a shared or cross-cutting exception.
+
+## Architecture Invariants
+
+- The project or module has `sdd4j-package-by-feature` as its primary SDD4J architecture adapter.
+- One SDD4J capability maps to one Java feature package.
+- The feature package is the capability identity and the default ownership boundary.
+- The capability spec lives in that package's `package-info.java`.
+- Contract-relevant entrypoints, application operations, domain/model/entity types, and capability tests belong in the feature package, its subpackages, or a declared mirrored test package.
+- Shared packages are exceptional. They must be declared in `AGENTS.md` or treated as cross-cutting implementation outside the capability contract.
+- Do not mix this adapter with layered or BCE mapping inside the same capability.
+
 ## Default Layout
 
 Use this shape unless the project's `AGENTS.md` declares a different mapping:
@@ -30,7 +42,7 @@ src/test/java/<base>/<capability>/
   <Capability>Test.java
 ```
 
-The capability package is the architecture unit. Prefer co-locating related code under that package instead of spreading classes across global `controller`, `service`, `repository`, or `model` packages.
+The capability package is the architecture unit. Prefer co-locating related code under that package instead of spreading classes across global `controller`, `service`, `repository`, or `model` packages. A project dominated by global layer packages is not a feature-package project; use `sdd4j-package-by-layer` or define an explicit project mapping instead.
 
 ## SDD4J Mapping
 
@@ -68,8 +80,20 @@ Detect code-to-spec drift:
 - A public entrypoint or application operation in the feature package is not represented in `## Boundary`.
 - A domain/model/entity type appears contract-relevant but is absent from `## Entities`.
 - A test under the feature package references a requirement id not present in the spec.
+- Contract-relevant capability code lives outside the feature package without a declared shared-package or adapter-routing rule.
 
 Surface drift to the user. Do not rewrite the spec to match code without explicit instruction.
+
+## Fit And Rejection Rules
+
+This adapter fits when new capabilities can be added as self-contained packages and existing capabilities have stable package ownership.
+
+Reject or ask for a different mapping when:
+
+- Most capability code is organized primarily by technical layer.
+- A single capability must be split across unrelated package roots without an explicit mapping.
+- Multiple feature packages share the same mutable domain model without a declared shared contract.
+- The project wants BCE layer semantics inside each capability package; use `sdd4j-bce` instead.
 
 ## AGENTS.md Override
 
@@ -80,6 +104,7 @@ Use this compact project mapping when defaults do not fit:
 
 Architecture layout:
 - skill: `sdd4j-package-by-feature`
+- scope: primary project architecture
 - source root: `src/main/java`
 - base package: `com.acme`
 - capability package pattern: `com.acme.<capability>`
