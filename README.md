@@ -7,6 +7,7 @@ Reusable agent skills for AI-assisted software delivery workflows, Java/Quarkus 
 | Skill | Purpose |
 | --- | --- |
 | [`sldd`](skills/sldd/README.md) | Routes Spec Loops Driven Development workflows through gated intent, design, test, implementation, and verification steps. |
+| [`sdd4j`](skills/sdd4j/SKILL.md) | Drives Spec-Driven Development for Java with `package-info.java` specs, EARS requirements, traceable tests, and pluggable architecture adapters. |
 | [`sdd4j-package-by-feature`](skills/sdd4j-package-by-feature/SKILL.md) | Maps SDD4J capabilities to co-located Java feature packages. |
 | [`sdd4j-package-by-layer`](skills/sdd4j-package-by-layer/SKILL.md) | Maps SDD4J capabilities to layered Java projects with controller/service/repository/model-style packages. |
 | [`sdd4j-bce`](skills/sdd4j-bce/SKILL.md) | Maps SDD4J capabilities to Boundary-Control-Entity business components with `boundary`, `control`, and `entity` layers. |
