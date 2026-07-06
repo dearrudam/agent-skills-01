@@ -1,40 +1,44 @@
 # Agent Skills 01
 
-This repo contains the following agent skills:
+Reusable agent skills for AI-assisted software delivery workflows, Java/Quarkus development, and repository operations.
 
-- [`skills/sldd`](skills/sldd/README.md): SLDD is a runtime skill for **Spec Loops Driven Development**: a gated, specs-driven workflow for AI-assisted software delivery.
-- [`skills/quarkus-jnosql`](skills/quarkus-jnosql/SKILL.md): Quarkus JNoSQL Skill to help the agent when the user wants to create, review, migrate, troubleshoot, or explain Quarkus applications using the Quarkus JNoSQL extension, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories.
-- [`skills/conventional-commit`](skills/conventional-commit/SKILL.md): Conventional Commit Skill to help the agent when the user wants to commit, craft a commit message, stage changes, or split work into multiple commits.
+## Skills
 
-## Install using the Skills CLI
+| Skill | Purpose |
+| --- | --- |
+| [`sldd`](skills/sldd/README.md) | Routes Spec Loops Driven Development workflows through gated intent, design, test, implementation, and verification steps. |
+| [`quarkus-jnosql`](skills/quarkus-jnosql/SKILL.md) | Helps create, review, migrate, troubleshoot, or explain Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
+| [`conventional-commit`](skills/conventional-commit/SKILL.md) | Analyzes staged git diffs and generates Conventional Commit messages for committing changes. |
+
+## Install With The Skills CLI
 
 ```bash
 npx skills add dearrudam/agent-skills-01
 ```
 
-## Install using installSkills script
+## Install With `installSkills`
 
-It requires Java 25+:
+The installer requires Java 25+:
 
 ```bash
 ./installSkills
 ```
 
-The default skills directory is `${HOME}/.agents/skills`. Use `--target <skills-dir>` to choose another skills directory:
+By default, skills are installed to `${HOME}/.agents/skills`. Use `--target <skills-dir>` to choose another destination:
 
 ```bash
 ./installSkills --target ~/.claude/skills
 ```
 
-Use `--copy` to install a copy instead of a symlink:
+Use `--copy` to install copies instead of symlinks:
 
 ```bash
 ./installSkills --copy
 ```
 
-The installer discovers skill directories under `skills/`, prompts before installing each skill, defaults to `$HOME/.agents/skills`, removes previous entries for each selected skill in the target directory, and creates installed skills at `<target>/<skill-name>`. Reload the consuming tool after changing installed skills.
+The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes previous entries for selected skills in the target directory, and writes each skill to `<target>/<skill-name>`. Reload the consuming tool after changing installed skills.
 
-## Install manually
+## Install Manually
 
 Install manually for Claude Code:
 
