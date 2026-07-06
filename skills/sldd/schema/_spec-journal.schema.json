@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://soujava.github.io/sldd-skills/_spec-journal.schema.json",
+  "title": "SLDD Spec Journal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "workflow", "kind", "steps"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workflow": {
+      "type": "string",
+      "const": "sldd"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["feature", "workflow-set"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "steps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "04-tests-red": {
+          "$ref": "#/$defs/red_step"
+        },
+        "05-implementation-green": {
+          "$ref": "#/$defs/green_step"
+        }
+      },
+      "patternProperties": {
+        "^(88-exploration|00-navigation|01-product-intent|99-codebase-context|02-high-level-design|03-low-level-design|06-verification|01-workflow-set-plan|02-scaffold-children|03-verify-workflow-set)$": {
+          "$ref": "#/$defs/step"
+        }
+      }
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "parents": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "predecessors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "workflowSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/workflow_set_child"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": {
+          "kind": {
+            "const": "workflow-set"
+          }
+        }
+      },
+      "then": {
+        "required": ["workflowSet"],
+        "properties": {
+          "steps": {
+            "required": [
+              "01-workflow-set-plan",
+              "02-scaffold-children",
+              "03-verify-workflow-set"
+            ],
+            "propertyNames": {
+              "$ref": "#/$defs/workflow_set_step_name"
+            }
+          },
+          "workflowSet": {
+            "required": ["children"],
+            "properties": {
+              "children": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": {
+          "kind": {
+            "const": "feature"
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": ["workflowSet"]
+        },
+        "properties": {
+          "steps": {
+            "propertyNames": {
+              "$ref": "#/$defs/feature_step_name"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "feature_step_name": {
+      "type": "string",
+      "enum": [
+        "88-exploration",
+        "00-navigation",
+        "01-product-intent",
+        "99-codebase-context",
+        "02-high-level-design",
+        "03-low-level-design",
+        "04-tests-red",
+        "05-implementation-green",
+        "06-verification"
+      ]
+    },
+    "workflow_set_step_name": {
+      "type": "string",
+      "enum": [
+        "01-workflow-set-plan",
+        "02-scaffold-children",
+        "03-verify-workflow-set"
+      ]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending", "complete", "requires_rerun"]
+        },
+        "artifact": {
+          "type": ["string", "null"]
+        },
+        "evidence": {
+          "type": ["string", "null"],
+          "enum": ["red_confirmed", "green_confirmed", null]
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "origin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "workflow-set-scaffold"
+            },
+            "journal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "artifact": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "workflow_set_child": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "title", "kind", "scaffold"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["feature"]
+        },
+        "scaffold": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": ["proposed", "created", "conflict"]
+            },
+            "journal": {
+              "type": "string",
+              "minLength": 1
+            },
+            "originArtifact": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "existingJournal": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "predecessors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "red_step": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/step"
+        },
+        {
+          "if": {
+            "required": ["status"],
+            "properties": {
+              "status": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "required": ["evidence"],
+            "properties": {
+              "evidence": {
+                "const": "red_confirmed"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "evidence": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "green_step": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/step"
+        },
+        {
+          "if": {
+            "required": ["status"],
+            "properties": {
+              "status": {
+                "const": "complete"
+              }
+            }
+          },
+          "then": {
+            "required": ["evidence"],
+            "properties": {
+              "evidence": {
+                "const": "green_confirmed"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "evidence": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
