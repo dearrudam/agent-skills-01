@@ -28,11 +28,13 @@ If the user clearly asks for this workflow without slash syntax, infer the match
 - The spec lives in `package-info.java` using Markdown documentation comments (`///`) when the project supports modern Java doc comments, or conventional Javadoc when it does not.
 - One capability spec maps to one architecture-defined component, feature, package, module, or business component.
 - One spec per capability is the single source of truth. Never create parallel specs for one capability.
+- A project should have one primary SDD4J architecture adapter. Multiple adapters in one repository are exceptional and must be declared explicitly per module, package root, or capability set in `AGENTS.md`.
 - The task list is the current gap between spec, code, and tests. Read it on demand; do not maintain a separate task file.
 - `## Requirements` uses EARS statements with stable ids such as `R1.1`.
 - Every requirement id must be grep-visible in at least one test according to the stack or project trace convention.
 - Done means the stack verification is green and no structural gap or drift remains.
 - SDD4J does not prescribe `boundary/control/entity`, `controller/service/repository`, or any other layout.
+- SDD4J must obey stronger invariants imposed by the selected architecture adapter. Do not weaken an adapter's contract to make an existing project fit silently.
 
 ## Composition Model
 
@@ -62,6 +64,8 @@ sdd4j + sdd4j-bce + java-cli-app
 
 The architecture skill or the project's `AGENTS.md` must answer these questions:
 
+- What is the project's primary SDD4J architecture adapter?
+- Are there any explicitly declared exceptions by module, package root, or capability set?
 - Where is the source root?
 - Where does a capability's `package-info.java` live?
 - How does a capability name map to packages and classes?
@@ -72,6 +76,8 @@ The architecture skill or the project's `AGENTS.md` must answer these questions:
 - How do tests expose requirement ids?
 
 If the adapter cannot answer confidently, run `setup` or ask one specific question. Do not infer a complex architecture silently.
+
+Treat architecture as a project-level decision, not a per-capability preference. Use one primary adapter for the project or module. If a repository genuinely mixes architectures, `AGENTS.md` must declare the routing rule before SDD4J writes, applies, or verifies affected capabilities. Never mix adapters inside one capability.
 
 ## Project Configuration
 
@@ -90,6 +96,7 @@ Spec source:
 
 Architecture layout:
 - skill: `sdd4j-package-by-feature`
+- scope: primary project architecture
 - capability package pattern: `com.acme.<capability>`
 - test package mirrors main package: true
 
@@ -102,7 +109,7 @@ Traceability:
 - requirement id must appear in test method name, display name, JavaDoc, or annotation
 ```
 
-For sdd4j-package-by-layer projects, include explicit layer package roots and the capability mapping convention.
+For sdd4j-package-by-layer projects, include explicit layer package roots and the capability mapping convention. For mixed or transitional repositories, include a short `architecture routing` rule that maps package roots or modules to adapters.
 
 ## System Doc
 
@@ -158,11 +165,12 @@ Use `setup` to configure SDD4J for an existing Java project before creating spec
 Workflow:
 
 1. Inspect project files enough to identify Java source roots, build tool, likely stack, and likely layout.
-2. Detect or ask for the architecture layout: `sdd4j-package-by-feature`, `sdd4j-package-by-layer`, `sdd4j-bce`, or a project-specific mapping.
+2. Detect or ask for the primary architecture layout: `sdd4j-package-by-feature`, `sdd4j-package-by-layer`, `sdd4j-bce`, or a project-specific mapping.
 3. Detect or ask for the stack skill: Spring Boot, MicroProfile, Java CLI, or another Java stack.
-4. Propose the `## SDD4J` section for `AGENTS.md`.
-5. Ask for confirmation before writing or replacing that section.
-6. Write only the project mapping. Do not create capability specs or domain code during setup.
+4. If multiple layouts appear, treat that as exceptional. Ask whether the project is transitional or multi-module, then propose explicit architecture routing by module, package root, or capability set.
+5. Propose the `## SDD4J` section for `AGENTS.md`.
+6. Ask for confirmation before writing or replacing that section.
+7. Write only the project mapping. Do not create capability specs or domain code during setup.
 
 When confidence is low, ask one concrete question at a time. Prefer enumerable choices with room for a custom answer.
 
@@ -210,7 +218,7 @@ Use `apply` to converge code and tests to an existing capability spec.
 Workflow:
 
 1. Locate the capability's `package-info.java`; if missing, stop and suggest `/sdd4j new <capability>`.
-2. Resolve architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question.
+2. Resolve the applicable architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question. If multiple adapters could apply, stop until the routing rule is explicit.
 3. Run the stack verification loop before editing when feasible. If green and no structural gap exists in either direction, stop and report already converged.
 4. Read the structural gap both ways.
 5. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
@@ -228,7 +236,7 @@ Use `verify` to check conformance without intentionally implementing missing beh
 Report:
 
 - Spec location.
-- Resolved architecture and stack.
+- Resolved architecture adapter, routing rule, and stack.
 - Requirement ids with and without tests.
 - Boundary operations with and without mapped code.
 - Entities/models with and without mapped code.
