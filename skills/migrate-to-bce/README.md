@@ -21,7 +21,8 @@ flowchart TD
   I --> E
   E --> J[Run relevant verification]
   J --> K[Move matching tests when convention allows]
-  K --> L[Run verification again]
+  K --> R[Remove empty packages/directories]
+  R --> L[Run verification again]
   L --> N{Reverse engineer specs?}
   N -->|SBCE or SDD4J| O[Generate specs and backfill requirement IDs into BC tests]
   O --> P[Run verification again]
@@ -49,6 +50,7 @@ flowchart LR
 - Identify business responsibilities before moving folders.
 - Preserve public APIs, routes, schemas, data formats, and shipped behavior unless the user approves a breaking change.
 - Move directly associated tests as part of each migration slice when project conventions allow mirrored ownership.
+- Remove source/test packages or directories that became empty because of the migration slice, unless project-local conventions intentionally keep them.
 - When reverse engineering migrated BCs into SBCE or SDD4J specs, add the generated requirement IDs to the respective migrated BC tests using the selected workflow's traceability convention.
 - Compose with stack skills for build, test, framework, and language rules.
 
