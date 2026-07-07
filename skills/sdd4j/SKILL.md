@@ -25,7 +25,7 @@ If the user clearly asks for this workflow without slash syntax, infer the match
 ## Core Invariants
 
 - The spec is the capability contract: what the Java package promises, not how it is implemented.
-- The spec lives in `package-info.java` using Markdown documentation comments (`///`) when the project supports modern Java doc comments, or conventional Javadoc when it does not.
+- The spec lives in `package-info.java` using Markdown doc comments ([JEP 467](https://openjdk.org/jeps/467)) - each line prefixed `///`, ending with the `package …;` declaration; if the project does not support it then use conventional Javadoc, ending with the `package …` declaration;
 - One capability spec maps to one architecture-defined component, feature, package, module, or business component.
 - One spec per capability is the single source of truth. Never create parallel specs for one capability.
 - A project should have one primary SDD4J architecture adapter. Multiple adapters in one repository are exceptional and must be declared explicitly per module, package root, or capability set in `AGENTS.md`.

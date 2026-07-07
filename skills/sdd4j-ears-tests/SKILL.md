@@ -37,7 +37,6 @@ Do not edit the spec and do not coin requirement ids. Missing, duplicate, or mal
 - The statement id `Rn.m` must be grep-visible in the test source.
 - The row label, display name, method name, JavaDoc, or annotation must preserve the id exactly.
 - A removed id retires its row. A row with no matching statement is drift.
-- A single-statement group may be a plain test if that is idiomatic for the stack.
 
 The shared test body should exercise the boundary operation or application operation associated with the requirement group, as defined by SDD4J and the architecture adapter.
 
