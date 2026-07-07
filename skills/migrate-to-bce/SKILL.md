@@ -11,7 +11,7 @@ metadata:
 
 Guide safe, incremental migration of an existing project to Boundary-Control-Entity architecture. This skill owns the migration workflow: discovery, target component model, migration plan, and convergence steps. Technology-specific implementation, build, tests, and framework idioms belong to composed stack skills.
 
-Use this skill with a BCE architecture skill when available. Use SBCE or SDD4J when the migration also needs capability specs, requirement traceability, or spec-driven convergence.
+Use this skill with a BCE architecture skill when available. Use SBCE or SDD4J when the migration also needs capability specs, requirement traceability, or spec-driven convergence. When reverse engineering migrated BCs into SBCE or SDD4J specs, also backfill the generated requirement IDs into the corresponding migrated BC tests so the specs and tests are traceable from the start.
 
 ## Core Rule
 
@@ -93,6 +93,15 @@ Do not generate specs automatically. Ask one focused question and offer the avai
 
 If the user chooses spec reverse engineering, compose this skill with the selected spec workflow skill and treat the generated specs as a separate follow-up migration step. Preserve the already-green BCE migration state.
 
+During that follow-up step, include traceability backfill for the tests of each migrated business component:
+
+- Assign or preserve stable requirement IDs in the generated SBCE or SDD4J spec according to the selected workflow's conventions.
+- Map each generated requirement ID to the migrated tests that already cover that behavior.
+- Add those IDs to the respective tests using the project's existing traceability style, such as parameterized test row labels, display names, method names, comments, assertion messages, or test metadata.
+- Prefer the traceability format required by `sdd4j-ears-tests` or `ears-tests` when those skills are used.
+- Do not change test semantics while adding IDs. If a migrated behavior has no matching test, report the missing coverage instead of inventing a passing test unless the user asked to add tests.
+- Re-run the relevant test command after adding IDs to confirm the traceability edit did not break verification.
+
 ## Migration Plan Output
 
 When producing a plan, use this structure:
@@ -155,7 +164,8 @@ When applying:
 7. Move directly associated tests to the corresponding BCE component/layer test package when local conventions allow mirrored tests.
 8. Run the relevant or full verification command again after test relocation.
 9. If `sbce` or `sdd4j` skills are available and the migrated BCE slice is green, ask whether to reverse engineer migrated BCs into capability specs for SBCE or SDD4J.
-10. Report what changed, what was verified, what tests moved, the user's spec reverse-engineering decision when asked, and what remains transitional.
+10. When the user chooses spec reverse engineering, generate the selected spec artifacts and add the generated requirement IDs to the respective tests of the migrated BCs.
+11. Report what changed, what was verified, what tests moved, the user's spec reverse-engineering decision when asked, which requirement IDs were added to tests, and what remains transitional.
 
 If the repository has uncommitted unrelated changes, do not revert or rewrite them. Work around them unless they directly conflict with the selected step.
 
@@ -172,6 +182,7 @@ For `verify` mode, check both structure and behavior:
 - Tests or documented checks cover the migrated behavior.
 - Migrated production code has matching migrated tests in the corresponding BCE test package when local conventions allow mirrored tests.
 - The project compiles and the relevant or full test suite passes after both production-code relocation and test relocation.
+- If migrated BCs were reverse engineered into SBCE or SDD4J specs, generated requirement IDs appear in the corresponding migrated BC tests using the selected workflow's traceability convention.
 - When `sbce` or `sdd4j` skills are available, the user has been asked whether to reverse engineer migrated BCs into specs, or the report explicitly notes that this follow-up was not requested.
 
 Report gaps as actionable follow-up steps. Do not silently expand the migration scope while verifying.
@@ -181,8 +192,9 @@ Report gaps as actionable follow-up steps. Do not silently expand the migration 
 Compose this skill with:
 
 - `bce` for detailed Boundary-Control-Entity architectural rules when available.
-- `sbce` when the user wants one capability spec per business component, spec-driven BCE convergence, or reverse engineering migrated BCs into capability specs.
-- `sdd4j` and `sdd4j-bce` for Java projects using `package-info.java` specs, EARS requirements, traceable tests, or reverse engineering migrated Java BCE components into co-located specs.
+- `sbce` when the user wants one capability spec per business component, spec-driven BCE convergence, or reverse engineering migrated BCs into capability specs with test IDs.
+- `sdd4j` and `sdd4j-bce` for Java projects using `package-info.java` specs, EARS requirements, traceable tests, or reverse engineering migrated Java BCE components into co-located specs with test IDs.
+- `ears-tests` or `sdd4j-ears-tests` when generated requirement IDs need to be represented in table-driven or grep-traceable tests.
 - The relevant stack skill for language, framework, build, test, and runtime conventions.
 
 This skill does not override stronger project-local instructions in `AGENTS.md` or an existing architecture decision record. Surface conflicts and ask one focused question when the migration target is ambiguous.
