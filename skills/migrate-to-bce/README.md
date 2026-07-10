@@ -50,6 +50,7 @@ flowchart LR
 
 - Produce a migration plan before changing code unless an approved plan already exists.
 - Identify business responsibilities before moving folders.
+- Use read-only subagents for broad discovery or independent review on larger repositories when available.
 - Preserve public APIs, routes, schemas, data formats, and shipped behavior unless the user approves a breaking change.
 - Move directly associated tests as part of each migration slice when project conventions allow mirrored ownership.
 - Remove source/test packages or directories that became empty because of the migration slice only after double-checking they are still empty.

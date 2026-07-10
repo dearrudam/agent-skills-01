@@ -44,6 +44,12 @@ Before planning, inspect the repository enough to understand its shape:
 
 Use the smallest investigation that can support a credible plan. Do not rewrite or move files during discovery.
 
+## Subagent Delegation
+
+For medium or large repositories, delegate read-only discovery to an exploration subagent when the harness supports subagents. Ask it to return source roots, test roots, major modules, entrypoints, domain nouns, use cases, persistence artifacts, existing tests, verification commands, likely BCE component candidates, and uncertainty notes. The subagent must not edit files, move code, update tests, run destructive commands, or make migration decisions.
+
+After applying a migration slice, a read-only review subagent may independently check for obsolete technical-layer packages, directly associated tests that were not moved, empty-package cleanup candidates, BCE structure drift, and missing verification evidence. The main agent owns the migration plan, user questions, final component boundaries, all edits, verification commands, and final reporting.
+
 ## BCE Target Model
 
 Use these BCE rules for migration decisions:
