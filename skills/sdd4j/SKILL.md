@@ -223,7 +223,7 @@ Workflow:
 4. Read the structural gap both ways.
 5. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
 6. Delegate EARS-to-test mapping to `sdd4j-ears-tests` when available: one parameterized or table-driven test per `### Rn` group and one labeled row or case per statement id `Rn.m`, adapted to the stack's test framework.
-7. Write the smallest correct implementation to pass the new tests.
+7. Write the correct implementation to pass the new tests.
 8. Surface code-to-spec drift instead of silently editing the spec to match code. The user decides whether to declare it or delete the orphan.
 9. Re-run verification and repeat for at most three passes. Then surface remaining failures, gaps, or drift.
 
