@@ -94,6 +94,10 @@ Spec source:
 - requirements style: EARS
 - trace ids: `R<n>.<m>`
 
+Spec language:
+- default: `en`
+- requirements: localized EARS
+
 Architecture layout:
 - skill: `sdd4j-package-by-feature`
 - scope: primary project architecture
@@ -110,6 +114,8 @@ Traceability:
 ```
 
 For sdd4j-package-by-layer projects, include explicit layer package roots and the capability mapping convention. For mixed or transitional repositories, include a short `architecture routing` rule that maps package roots or modules to adapters.
+
+`Spec language` is optional. When absent, write specs and EARS requirements in English. When present, write the capability title, responsibility, boundary descriptions, requirement prose, entity descriptions, out-of-scope items, system docs, and README generated projections in the configured language. Keep structural section names, requirement ids, package names, class names, method names, boundary operation ids, and trace ids stable unless the project explicitly declares otherwise.
 
 ## System Doc
 
@@ -282,7 +288,7 @@ Boundary operations must be verb-noun and transport-neutral, such as `place-orde
 - Use stable ids and never reuse retired ids.
 - Keep statements behavioral and verifiable.
 - Keep framework details, URLs, HTTP verbs, database tables, and implementation choices out of requirements unless the stack contract itself is the capability.
-- Use `When`, `If`, `While`, `Where`, or ubiquitous EARS statements.
+- Use EARS as semantic patterns, not English-only keywords. In English specs, use `When`, `If`, `While`, `Where`, or ubiquitous EARS statements. In localized specs, express the same event-driven, unwanted-behavior, state-driven, optional-feature, ubiquitous, or complex pattern in the configured language.
 - Every boundary operation must trace to a requirement group `Rn`.
 - Every statement `Rn.m` must trace to at least one test that embeds the id according to the stack convention.
 - A test id with no matching statement is inverse drift.

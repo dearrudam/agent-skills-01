@@ -36,12 +36,14 @@ An SDD4J capability spec defines:
 - `## Requirements` EARS statements with stable ids such as `R1.1`.
 - `## Entities` contract-relevant domain concepts when needed.
 - `## Out of scope` explicit non-goals when needed.
+- Optional `AGENTS.md` spec language for localized EARS prose.
 
 ## Core Rules
 
 - The spec is the source of truth for intended behavior.
 - One capability has one spec.
 - Every requirement id must be grep-visible in at least one test.
+- EARS patterns are semantic and may be localized when configured.
 - `apply` writes the correct implementation to pass new traceable tests.
 - Code-to-spec drift is reported, not silently absorbed into the spec.
 - Done means stack verification is green and no structural gap or drift remains.
