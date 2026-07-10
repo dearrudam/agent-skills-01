@@ -68,16 +68,17 @@ For each approved migration step:
 2. Update imports, configuration, registration, and wiring until the project compiles.
 3. Run the relevant tests to confirm behavior is preserved before relocating tests when feasible.
 4. Move the directly associated tests to mirror the new BCE component and layer when the project uses mirrored test packages or component ownership.
-5. Remove source and test packages or directories that became empty because of the migration slice.
-6. Run the relevant or full verification command again after test relocation and empty-package cleanup.
+5. Identify source and test packages or directories that became empty because of the migration slice.
+6. Double-check each candidate directory/package to confirm it is still empty immediately before removal, then remove only confirmed-empty candidates.
+7. Run the relevant or full verification command again after test relocation and empty-package cleanup.
 
-Empty-package cleanup is part of migration convergence because obsolete package shells make the architecture look transitional after the code has moved. Remove only directories/packages that are empty after the move and are owned by the migrated source or test roots. Do not remove generated output, build directories, vendor directories, resource directories with meaningful non-code files, or intentionally reserved package markers unless the project-local convention says they are disposable.
+Empty-package cleanup is part of migration convergence because obsolete package shells make the architecture look transitional after the code has moved. Before deleting anything, check candidates twice: first when identifying empty packages/directories after the move, and again immediately before removal to ensure no files, hidden files, resource files, package markers, or concurrent changes appeared. Remove only directories/packages that are confirmed empty by this second check and are owned by the migrated source or test roots. Do not remove generated output, build directories, vendor directories, resource directories with meaningful non-code files, or intentionally reserved package markers unless the project-local convention says they are disposable.
 
 A migration slice is not complete until:
 
 - production code is under the intended BCE component and layer,
 - directly associated tests are under the corresponding BCE test package when local conventions allow it,
-- obsolete source/test packages or directories emptied by the move have been removed,
+- obsolete source/test packages or directories emptied by the move have been double-checked as empty and removed,
 - the project compiles,
 - and the relevant or full test suite passes.
 
@@ -150,7 +151,7 @@ Create steps that are small enough to verify independently:
 - When tests are weak, add characterization tests or document manual checks before moving risky behavior.
 - Treat tests as part of the migration unit. Moving production code without moving its directly associated tests is incomplete when tests mirror source structure or component ownership.
 - Prefer moving tests after production code is stable in the new package, so behavior failures and test-package relocation failures are not mixed together.
-- After each move, delete packages or directories that became empty in the source and test roots so obsolete technical-layer shells do not survive as misleading architecture.
+- After each move, identify packages or directories that became empty in the source and test roots, then double-check each candidate immediately before deleting it so cleanup is safe and does not remove concurrent or meaningful files.
 
 Do not create compatibility shims unless there is a concrete need: external consumers, persisted data, shipped behavior, or explicit user requirement.
 
@@ -167,11 +168,12 @@ When applying:
 5. Update imports, package/module declarations, registration/configuration, and wiring affected by the move.
 6. Run the relevant formatter/build/tests when available to confirm production behavior is still preserved.
 7. Move directly associated tests to the corresponding BCE component/layer test package when local conventions allow mirrored tests.
-8. Remove source/test packages or directories that became empty as a direct result of the move.
-9. Run the relevant or full verification command again after test relocation and empty-package cleanup.
-10. If `sbce` or `sdd4j` skills are available and the migrated BCE slice is green, ask whether to reverse engineer migrated BCs into capability specs for SBCE or SDD4J.
-11. When the user chooses spec reverse engineering, generate the selected spec artifacts and add the generated requirement IDs to the respective tests of the migrated BCs.
-12. Report what changed, what was verified, what tests moved, what empty packages/directories were removed, the user's spec reverse-engineering decision when asked, which requirement IDs were added to tests, and what remains transitional.
+8. Identify source/test packages or directories that became empty as a direct result of the move.
+9. Double-check each candidate directory/package immediately before removal and remove only candidates still confirmed empty.
+10. Run the relevant or full verification command again after test relocation and empty-package cleanup.
+11. If `sbce` or `sdd4j` skills are available and the migrated BCE slice is green, ask whether to reverse engineer migrated BCs into capability specs for SBCE or SDD4J.
+12. When the user chooses spec reverse engineering, generate the selected spec artifacts and add the generated requirement IDs to the respective tests of the migrated BCs.
+13. Report what changed, what was verified, what tests moved, what empty packages/directories were double-checked and removed, the user's spec reverse-engineering decision when asked, which requirement IDs were added to tests, and what remains transitional.
 
 If the repository has uncommitted unrelated changes, do not revert or rewrite them. Work around them unless they directly conflict with the selected step.
 
@@ -187,7 +189,7 @@ For `verify` mode, check both structure and behavior:
 - Cross-component dependencies are intentional and minimal.
 - Tests or documented checks cover the migrated behavior.
 - Migrated production code has matching migrated tests in the corresponding BCE test package when local conventions allow mirrored tests.
-- Packages or directories emptied by migrated source/test moves have been removed unless a project-local convention intentionally keeps them.
+- Packages or directories emptied by migrated source/test moves have been double-checked as empty immediately before removal.
 - The project compiles and the relevant or full test suite passes after production-code relocation, test relocation, and empty-package cleanup.
 - If migrated BCs were reverse engineered into SBCE or SDD4J specs, generated requirement IDs appear in the corresponding migrated BC tests using the selected workflow's traceability convention.
 - When `sbce` or `sdd4j` skills are available, the user has been asked whether to reverse engineer migrated BCs into specs, or the report explicitly notes that this follow-up was not requested.
