@@ -25,7 +25,9 @@ Consume a SDD4J capability spec, usually from `package-info.java`, with this sha
 ### R1 Place order
 
 - R1.1 When a cart with at least one item is submitted, the capability shall create and confirm an order.
+  
 - R1.2 If the cart is empty, then the capability shall reject the request.
+
 ```
 
 Do not edit the spec and do not coin requirement ids. Missing, duplicate, or malformed ids are spec issues to report back to SDD4J.
