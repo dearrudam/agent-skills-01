@@ -117,6 +117,8 @@ For sdd4j-package-by-layer projects, include explicit layer package roots and th
 
 `Spec language` is optional. When absent, write specs and EARS requirements in English. When present, write the capability title, responsibility, boundary descriptions, requirement prose, entity descriptions, out-of-scope items, system docs, and README generated projections in the configured language. Keep structural section names, requirement ids, package names, class names, method names, boundary operation ids, and trace ids stable unless the project explicitly declares otherwise.
 
+Before authoring, extending, applying, or verifying a capability spec, read the project-local `AGENTS.md ## SDD4J` section and resolve `Spec language`. Apply the resolved language to all generated or modified spec prose and localized EARS statements. If `Spec language` is absent, use English.
+
 ## System Doc
 
 An optional system doc can live one package above the capability packages, usually as the base package's `package-info.java`. Use it only for concerns that span capabilities and have no better home. A one-capability system does not need it.
@@ -194,13 +196,14 @@ Clarify before authoring:
 
 For a capability name:
 
-1. Validate the name using the architecture adapter's naming rules.
-2. Locate the target package from `AGENTS.md` or the architecture adapter.
-3. If `package-info.java` exists, do not overwrite it without explicit user confirmation.
-4. Clarify boundary operations, entities, happy paths, edge cases, and out-of-scope behavior until the contract is answerable from user intent.
-5. Author the package spec from the required section order.
-6. Ask the architecture and stack skills to scaffold only what their conventions require. Do not invent application behavior beyond the spec.
-7. Report the open gap: operation count, requirement count, entity count, and suggested `/sdd4j apply <capability>`.
+1. Resolve `Spec language` from `AGENTS.md ## SDD4J`; if absent, use English.
+2. Validate the name using the architecture adapter's naming rules.
+3. Locate the target package from `AGENTS.md` or the architecture adapter.
+4. If `package-info.java` exists, do not overwrite it without explicit user confirmation.
+5. Clarify boundary operations, entities, happy paths, edge cases, and out-of-scope behavior until the contract is answerable from user intent.
+6. Author the package spec from the required section order in the resolved spec language.
+7. Ask the architecture and stack skills to scaffold only what their conventions require. Do not invent application behavior beyond the spec.
+8. Report the open gap: operation count, requirement count, entity count, and suggested `/sdd4j apply <capability>`.
 
 For a feature description:
 
@@ -224,14 +227,15 @@ Use `apply` to converge code and tests to an existing capability spec.
 Workflow:
 
 1. Locate the capability's `package-info.java`; if missing, stop and suggest `/sdd4j new <capability>`.
-2. Resolve the applicable architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question. If multiple adapters could apply, stop until the routing rule is explicit.
-3. Run the stack verification loop before editing when feasible. If green and no structural gap exists in either direction, stop and report already converged.
-4. Read the structural gap both ways.
-5. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
-6. Delegate EARS-to-test mapping to `sdd4j-ears-tests` when available: one parameterized or table-driven test per `### Rn` group and one labeled row or case per statement id `Rn.m`, adapted to the stack's test framework.
-7. Write the correct implementation to pass the new tests.
-8. Surface code-to-spec drift instead of silently editing the spec to match code. The user decides whether to declare it or delete the orphan.
-9. Re-run verification and repeat for at most three passes. Then surface remaining failures, gaps, or drift.
+2. Resolve `Spec language` from `AGENTS.md ## SDD4J`; if absent, use English.
+3. Resolve the applicable architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question. If multiple adapters could apply, stop until the routing rule is explicit.
+4. Run the stack verification loop before editing when feasible. If green and no structural gap exists in either direction, stop and report already converged.
+5. Read the structural gap both ways.
+6. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
+7. Delegate EARS-to-test mapping to `sdd4j-ears-tests` when available: one parameterized or table-driven test per `### Rn` group and one labeled row or case per statement id `Rn.m`, adapted to the stack's test framework.
+8. Write the correct implementation to pass the new tests.
+9. Surface code-to-spec drift instead of silently editing the spec to match code. The user decides whether to declare it or delete the orphan.
+10. Re-run verification and repeat for at most three passes. Then surface remaining failures, gaps, or drift.
 
 Stop when verification is green and no gap or drift remains.
 
@@ -242,6 +246,7 @@ Use `verify` to check conformance without intentionally implementing missing beh
 Report:
 
 - Spec location.
+- Resolved spec language.
 - Resolved architecture adapter, routing rule, and stack.
 - Requirement ids with and without tests.
 - Boundary operations with and without mapped code.
@@ -284,7 +289,7 @@ Boundary operations must be verb-noun and transport-neutral, such as `place-orde
 
 ## EARS Rules
 
-- Use `shall` for every requirement.
+- Use mandatory requirement wording for every requirement. In English specs, use `shall`. In localized specs, use a consistent configured-language equivalent.
 - Use stable ids and never reuse retired ids.
 - Keep statements behavioral and verifiable.
 - Keep framework details, URLs, HTTP verbs, database tables, and implementation choices out of requirements unless the stack contract itself is the capability.
@@ -292,7 +297,7 @@ Boundary operations must be verb-noun and transport-neutral, such as `place-orde
 - Every boundary operation must trace to a requirement group `Rn`.
 - Every statement `Rn.m` must trace to at least one test that embeds the id according to the stack convention.
 - A test id with no matching statement is inverse drift.
-- Optional behavior is expressed with `Where <feature is included>, the capability shall <response>.` Do not use `should` or `may` for contract behavior.
+- Optional behavior is expressed with the optional-feature EARS pattern. In English specs, use `Where <feature is included>, the capability shall <response>.` Do not use `should` or `may` for contract behavior; use equivalent non-optional wording in localized specs.
 
 EARS templates:
 

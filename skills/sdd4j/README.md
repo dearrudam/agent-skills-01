@@ -43,7 +43,9 @@ An SDD4J capability spec defines:
 - The spec is the source of truth for intended behavior.
 - One capability has one spec.
 - Every requirement id must be grep-visible in at least one test.
+- `new`, `apply`, and `verify` resolve `Spec language` from `AGENTS.md ## SDD4J`; when absent, specs are written and checked in English.
 - EARS patterns are semantic and may be localized when configured.
+- English requirements use `shall`; localized requirements use a consistent mandatory equivalent in the configured language.
 - `apply` writes the correct implementation to pass new traceable tests.
 - Code-to-spec drift is reported, not silently absorbed into the spec.
 - Done means stack verification is green and no structural gap or drift remains.
