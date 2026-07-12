@@ -1,6 +1,6 @@
 ---
 name: sdd4j-ears-tests
-description: Generate traceable Java tests from SDD4J EARS requirements. Use with SDD4J when package-info.java capability specs have ## Requirements groups with ids like R1.1 and tests must be parameterized, table-driven, or otherwise grep-traceable to each statement. Trigger on SDD4J tests, EARS tests for Java, tests from package-info.java requirements, requirement id traceability, or converting SDD4J requirements into tests.
+description: 'Generate traceable Java tests from SDD4J EARS requirements. Use with SDD4J when package-info.java capability specs have ## Requirements groups with ids like R1.1 and tests must be parameterized, table-driven, or otherwise grep-traceable to each statement. Trigger on SDD4J tests, EARS tests for Java, tests from package-info.java requirements, requirement id traceability, or converting SDD4J requirements into tests.'
 metadata:
   type: test-generation
 ---
