@@ -1,8 +1,6 @@
 ---
-id: conventional-commit
-name: Conventional Commit Generator
+name: conventional-commit
 description: Analyzes git diffs and commits staged changes using Conventional Commits v1.0.0.1. Use when the user asks to commit, craft a commit message, stage changes, or split work into multiple commits.
-
 version: 1.0.0
 ---
 
