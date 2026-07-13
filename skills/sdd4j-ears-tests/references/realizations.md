@@ -7,8 +7,10 @@ Example SDD4J requirement group:
 ```md
 ### R1 Place an order
 
-- R1.1 When a cart with at least one item is submitted, the capability shall create and confirm an order.
-- R1.2 If the cart is empty, then the capability shall reject the request.
+- R1.1 - When a cart with at least one item is submitted, the capability shall create and confirm an order.
+
+- R1.2 - If the cart is empty, then the capability shall reject the request.
+
 ```
 
 In every realization, `R1.1` and `R1.2` are grep-visible trace tokens. Fixture values and assertions are authored. Do not fabricate domain values merely to make a test pass.
