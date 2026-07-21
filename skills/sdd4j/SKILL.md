@@ -271,9 +271,9 @@ Sections must appear in this order:
 
 ### R1 Requirement group title
 
-- R1.1 When <trigger>, the capability shall <response>.
+- R1.1 - When <trigger>, the capability shall <response>.
 
-- R1.2 If <unwanted condition>, then the capability shall <response>.
+- R1.2 - If <unwanted condition>, then the capability shall <response>.
 
 ## Entities
 
