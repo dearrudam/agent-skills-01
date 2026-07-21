@@ -44,6 +44,38 @@ Before planning, inspect the repository enough to understand its shape:
 
 Use the smallest investigation that can support a credible plan. Do not rewrite or move files during discovery.
 
+## Migration Documentation
+
+For long-running BCE migrations, create a `.bce-migration` directory in the project root to track progress and decisions:
+
+```
+.bce-migration/
+├── plan.md     # Migration plan + component catalog + decisions
+└── journal.md  # Progress journal with chronological entries
+```
+
+**plan.md** should contain:
+- Current architecture assessment
+- Proposed business components with status tracking table
+- Package naming decisions and architectural decisions
+- Migration strategy and sequencing rationale
+- Detailed step-by-step migration plan
+- Risk assessment and mitigation checks
+- Recommended first step
+
+**journal.md** should contain chronological entries:
+```
+## [YYYY-MM-DD] - Step N: Component Name Migration
+- Status: [In Progress/Completed/Blocked]
+- Changes made: [list files moved/modified]
+- Tests run: [command and result]
+- Issues encountered: [any problems and resolutions]
+- Decisions made: [architectural decisions during this step]
+- Next steps: [what needs to happen next]
+```
+
+Create this documentation structure during the `plan` mode before any code changes. Update journal.md after each migration step in `apply` mode. This provides traceability, enables pause/resume capability, and creates a permanent record of the migration for collaboration and future reference.
+
 ## Subagent Delegation
 
 For medium or large repositories, delegate read-only discovery to an exploration subagent when the harness supports subagents. Ask it to return source roots, test roots, major modules, entrypoints, domain nouns, use cases, persistence artifacts, existing tests, verification commands, likely BCE component candidates, and uncertainty notes. The subagent must not edit files, move code, update tests, run destructive commands, or make migration decisions.
@@ -115,7 +147,7 @@ During that follow-up step, include traceability backfill for the tests of each 
 
 ## Migration Plan Output
 
-When producing a plan, use this structure:
+When producing a plan, use this structure and write it to `.bce-migration/plan.md`:
 
 ```md
 ## BCE Migration Plan
@@ -124,8 +156,11 @@ When producing a plan, use this structure:
 [Brief description of the current architecture and verification command if known.]
 
 ### Proposed Business Components
-| Component | Responsibility | Boundary | Control | Entity | Source Evidence |
-| --- | --- | --- | --- | --- | --- |
+| Component | Responsibility | Status | Boundary | Control | Entity | Source Evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+
+### Package Naming Decision
+[Chosen package naming pattern with rationale]
 
 ### Migration Strategy
 [Incremental strategy and sequencing rationale.]
@@ -142,7 +177,7 @@ When producing a plan, use this structure:
 [The smallest useful step to apply if the user wants to continue.]
 ```
 
-Keep the plan concrete. Reference actual packages, directories, files, classes, modules, or routes discovered in the repository.
+Keep the plan concrete. Reference actual packages, directories, files, classes, modules, or routes discovered in the repository. Include a status column in the components table to track migration progress (Not Started, In Progress, Completed).
 
 ## Planning Heuristics
 
@@ -168,18 +203,21 @@ Only apply code changes when the user asks to execute a plan or a specific migra
 When applying:
 
 1. Restate the selected step briefly.
-2. Inspect the touched files before editing.
-3. Move or refactor the minimum code needed for that step.
-4. Preserve behavior and public contracts.
-5. Update imports, package/module declarations, registration/configuration, and wiring affected by the move.
-6. Run the relevant formatter/build/tests when available to confirm production behavior is still preserved.
-7. Move directly associated tests to the corresponding BCE component/layer test package when local conventions allow mirrored tests.
-8. Identify source/test packages or directories that became empty as a direct result of the move.
-9. Double-check each candidate directory/package immediately before removal and remove only candidates still confirmed empty.
-10. Run the relevant or full verification command again after test relocation and empty-package cleanup.
-11. If `sbce` or `sdd4j` skills are available and the migrated BCE slice is green, ask whether to reverse engineer migrated BCs into capability specs for SBCE or SDD4J.
-12. When the user chooses spec reverse engineering, generate the selected spec artifacts and add the generated requirement IDs to the respective tests of the migrated BCs.
-13. Report what changed, what was verified, what tests moved, what empty packages/directories were double-checked and removed, the user's spec reverse-engineering decision when asked, which requirement IDs were added to tests, and what remains transitional.
+2. Add a new entry to `.bce-migration/journal.md` with status "In Progress".
+3. Inspect the touched files before editing.
+4. Move or refactor the minimum code needed for that step.
+5. Preserve behavior and public contracts.
+6. Update imports, package/module declarations, registration/configuration, and wiring affected by the move.
+7. Run the relevant formatter/build/tests when available to confirm production behavior is still preserved.
+8. Move directly associated tests to the corresponding BCE component/layer test package when local conventions allow mirrored tests.
+9. Identify source/test packages or directories that became empty as a direct result of the move.
+10. Double-check each candidate directory/package immediately before removal and remove only candidates still confirmed empty.
+11. Run the relevant or full verification command again after test relocation and empty-package cleanup.
+12. Update the journal.md entry with status "Completed", changes made, test results, issues encountered, and decisions made.
+13. Update the component status in `.bce-migration/plan.md`.
+14. If `sbce` or `sdd4j` skills are available and the migrated BCE slice is green, ask whether to reverse engineer migrated BCs into capability specs for SBCE or SDD4J.
+15. When the user chooses spec reverse engineering, generate the selected spec artifacts and add the generated requirement IDs to the respective tests of the migrated BCs.
+16. Report what changed, what was verified, what tests moved, what empty packages/directories were double-checked and removed, the user's spec reverse-engineering decision when asked, which requirement IDs were added to tests, and what remains transitional.
 
 If the repository has uncommitted unrelated changes, do not revert or rewrite them. Work around them unless they directly conflict with the selected step.
 
