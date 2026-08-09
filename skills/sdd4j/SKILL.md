@@ -32,7 +32,7 @@ If the user clearly asks for this workflow without slash syntax, infer the match
 - The task list is the current gap between spec, code, and tests. Read it on demand; do not maintain a separate task file.
 - `## Requirements` uses EARS statements with stable ids such as `R1.1`.
 - Every requirement id must be grep-visible in at least one test according to the stack or project trace convention.
-- Done means the stack verification is green and no structural gap or drift remains.
+- Done means the stack verification is green, no structural gap or drift remains, and traced tests and implementation semantically conform to every requirement.
 - SDD4J does not prescribe `boundary/control/entity`, `controller/service/repository`, or any other layout.
 - SDD4J must obey stronger invariants imposed by the selected architecture adapter. Do not weaken an adapter's contract to make an existing project fit silently.
 
@@ -229,15 +229,17 @@ Workflow:
 1. Locate the capability's `package-info.java`; if missing, stop and suggest `/sdd4j new <capability>`.
 2. Resolve `Spec language` from `AGENTS.md ## SDD4J`; if absent, use English.
 3. Resolve the applicable architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question. If multiple adapters could apply, stop until the routing rule is explicit.
-4. Run the stack verification loop before editing when feasible. If green and no structural gap exists in either direction, stop and report already converged.
+4. Run the stack verification loop before editing when feasible. Treat a green result as necessary evidence, not proof of convergence.
 5. Read the structural gap both ways.
-6. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
-7. Delegate EARS-to-test mapping to `sdd4j-ears-tests` when available: one parameterized or table-driven test per `### Rn` group and one labeled row or case per statement id `Rn.m`, adapted to the stack's test framework.
-8. Write the correct implementation to pass the new tests.
-9. Surface code-to-spec drift instead of silently editing the spec to match code. The user decides whether to declare it or delete the orphan.
-10. Re-run verification and repeat for at most three passes. Then surface remaining failures, gaps, or drift.
+6. Audit semantic conformance for every requirement: compare its trigger, preconditions, observable response, rejection behavior, constraints, and exact contract values with the traced tests and mapped implementation. A grep-visible id and a green test do not prove that the test asserts the requirement's semantics.
+7. If verification is green and no structural or semantic gap or drift exists, stop and report already converged.
+8. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
+9. Delegate EARS-to-test mapping to `sdd4j-ears-tests` when available: one parameterized or table-driven test per `### Rn` group and one labeled row or case per statement id `Rn.m`, adapted to the stack's test framework.
+10. Write the correct implementation to pass the new tests.
+11. Surface code-to-spec drift instead of silently editing the spec to match code. The user decides whether to declare it or delete the orphan.
+12. Re-run verification and repeat for at most three passes. Then surface remaining failures, gaps, or drift.
 
-Stop when verification is green and no gap or drift remains.
+Stop when verification is green and no structural or semantic gap or drift remains.
 
 ## Mode: verify
 
@@ -249,6 +251,7 @@ Report:
 - Resolved spec language.
 - Resolved architecture adapter, routing rule, and stack.
 - Requirement ids with and without tests.
+- Semantic mismatches between requirements, their traced tests, and mapped implementation.
 - Boundary operations with and without mapped code.
 - Entities/models with and without mapped code.
 - Inverse drift found in code or tests.

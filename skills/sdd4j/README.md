@@ -48,7 +48,7 @@ An SDD4J capability spec defines:
 - English requirements use `shall`; localized requirements use a consistent mandatory equivalent in the configured language.
 - `apply` writes the correct implementation to pass new traceable tests.
 - Code-to-spec drift is reported, not silently absorbed into the spec.
-- Done means stack verification is green and no structural gap or drift remains.
+- Done means stack verification is green, no structural gap or drift remains, and traced tests and implementation semantically conform to every requirement.
 
 ## Source Contract
 
