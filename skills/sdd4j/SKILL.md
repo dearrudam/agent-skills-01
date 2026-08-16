@@ -1,6 +1,6 @@
 ---
 name: sdd4j
-description: Spec-Driven Development for Java workflow using package-info.java as the co-located capability contract. Use when the user asks for SDD4J, spec-driven Java development, package-info.java specs, EARS requirements, traceable requirement tests, or wants to set up, create, apply, or verify Java capability specs across architectures such as sdd4j-package-by-feature, sdd4j-package-by-layer, or sdd4j-bce.
+description: Spec-Driven Development for Java workflow using package-info.java as the co-located capability contract. Use when the user asks for SDD4J, spec-driven Java development, package-info.java specs, EARS requirements, traceable requirement tests, or wants to set up, create, apply, verify, or converge a capability spec across architectures such as sdd4j-package-by-feature, sdd4j-package-by-layer, or sdd4j-bce.
 metadata:
   type: workflow
 ---
@@ -25,13 +25,13 @@ If the user clearly asks for this workflow without slash syntax, infer the match
 ## Core Invariants
 
 - The spec is the capability contract: what the Java package promises, not how it is implemented.
-- The spec lives in `package-info.java` using Markdown doc comments ([JEP 467](https://openjdk.org/jeps/467)) - each line prefixed `///`, ending with the `package …;` declaration; if the project does not support it then use conventional Javadoc, ending with the `package …` declaration;
+- The spec lives in `package-info.java` using Markdown doc comments ([JEP 467](https://openjdk.org/jeps/467)) - each line prefixed `///`, ending with the `package …;` declaration; if the project does not support it, then use conventional Javadoc, ending with the `package …` declaration;
 - One capability spec maps to one architecture-defined component, feature, package, module, or business component.
 - One spec per capability is the single source of truth. Never create parallel specs for one capability.
 - A project should have one primary SDD4J architecture adapter. Multiple adapters in one repository are exceptional and must be declared explicitly per module, package root, or capability set in `AGENTS.md`.
 - The task list is the current gap between spec, code, and tests. Read it on demand; do not maintain a separate task file.
 - `## Requirements` uses EARS statements with stable ids such as `R1.1`.
-- Every requirement id must be grep-visible in at least one test according to the stack or project trace convention.
+- Every requirement id must be represented by at least one executable test or case whose runner-visible identity resolves to the exact `Rn.m` id according to the stack or project trace convention. The trace may use the literal id or a symbol whose display form is the literal id. JavaDoc or comments alone do not count as traceability.
 - Done means the stack verification is green, no structural gap or drift remains, and traced tests and implementation semantically conform to every requirement.
 - SDD4J does not prescribe `boundary/control/entity`, `controller/service/repository`, or any other layout.
 - SDD4J must obey stronger invariants imposed by the selected architecture adapter. Do not weaken an adapter's contract to make an existing project fit silently.
@@ -110,7 +110,9 @@ Stack:
 - verification command: `./mvnw test`
 
 Traceability:
-- requirement id must appear in test method name, display name, JavaDoc, or annotation
+- requirement id must resolve to its exact runner-visible `Rn.m` form through a display name, case label, symbol, or annotation consumed by the test/reporting infrastructure
+- a normalized Java identifier such as `R1_2` is valid only when the configured infrastructure resolves and displays it as `R1.2`
+- JavaDoc and comments alone do not count
 ```
 
 For sdd4j-package-by-layer projects, include explicit layer package roots and the capability mapping convention. For mixed or transitional repositories, include a short `architecture routing` rule that maps package roots or modules to adapters.
@@ -121,35 +123,31 @@ Before authoring, extending, applying, or verifying a capability spec, read the 
 
 ## System Doc
 
-An optional system doc can live one package above the capability packages, usually as the base package's `package-info.java`. Use it only for concerns that span capabilities and have no better home. A one-capability system does not need it.
+An optional system doc can live one package above the capability packages, usually at
+`src/main/java/<base>/package-info.java`. Use it only for concerns that span capabilities and have no better home. A one-capability system does not need it. Author from `references/system-doc-template.md`.
 
-Recommended sections:
+- **Charter** — one sentence for the whole assembly.
+- **Vision** *(optional)* — one aspirational sentence: the outcome the assembly chases. Rationale, not contract — no `Sn`, no test; the single non-verifiable line in the doc, and the deliberate exception to the traceability invariant. May be proposed by `/sdd4j new` distilling a README seed (human accepts/edits).
+- **Components** — this system's concrete wiring: which SDD4J capability may call which, which integration events cross boundaries (`/bce` owns the generic layering; this owns the concrete dependencies).
+- **System invariants** — cross-cutting EARS `shall` statements (id `Sn`) no single SDD4J capability owns.
+- **Ubiquitous language** — shared domain nouns defined once, so each SDD4J capability's `## Entities` stays terse.
+- **Decisions** *(optional)* — append-only log of confirmed choices and their rejected alternatives (a stack pick, a carving, an integration style): `Dn — <choice>. _(why: …; rejected: …)_`. Rationale, not contract — like Vision and a statement's `why`: no test, not a trace target. Ids stable; a reversed decision gets a new entry, the old one marked `superseded by Dm` — never edited or deleted. Litmus: testable behaviour → an EARS statement (tested); a standing project rule → README `## Conventions`; a point-in-time choice with rejected alternatives → `Dn`. A decision owned by a single SDD4J capability may live in that SDD4J capability's package doc under the same rules.
+- **Stack** — the composed stack skill + package base, so `apply` reads it instead of re-inferring.
 
-- `## Charter` - one sentence for the whole Java application or module.
-- `## Vision` - optional aspirational sentence; rationale only, not a testable contract.
-- `## Components` - declared wiring between capabilities, modules, adapters, or external systems.
-- `## System invariants` - cross-capability EARS `shall` statements using ids such as `S1` or `S1.1`.
-- `## Ubiquitous language` - shared domain nouns that should not be redefined in every capability.
-- `## Stack` - composed stack skill, architecture adapter, source root, and base package when useful.
-
-Do not duplicate every capability's one-line responsibility in hand-written system docs. If a capability map is needed, mark it generated and regenerate it from capability specs.
+Never duplicate a SDD4J capability's one-liner — a hand-typed SDD4J capability index drifts; the gap is read, not stored. For a SDD4J capability map, mark it **generated** and regenerate it from the per-SDD4J capability docs.
 
 ## README Projection
 
-An optional repo-root `README.md` is a projection of specs, not a source of truth after specs exist.
+An **optional** repo-root `README.md` — a human on-ramp that is a **projection of the specs, not a
+source of truth**. Author from `references/readme-template.md`. Two slices, handled oppositely:
 
-Generated content, if present, must be fenced by:
+- **Generated** (never hand-edited) — the system doc's Charter + Vision, a SDD4J capability map (each SDD4J capability name, its `>` one-liner, a link to its `package-info`), and a **Mermaid diagram of the declared `## Components` wiring**, fenced by `<!-- sdd4j:generated:start -->` / `<!-- sdd4j:generated:end -->`.
+- **Hand-maintained** (outside the markers, since no spec covers it — so it can't drift): `## Conventions`, build/run/test delegated to the stack skill, plus free-form meta (license, links, motivation).
 
-```html
-<!-- sdd4j:generated:start -->
-<!-- sdd4j:generated:end -->
-```
-
-The generated block may include the system Charter and Vision, a capability map with links to `package-info.java`, and a Mermaid diagram of declared `## Components` wiring. Render only declared wiring from the system doc. Never infer component edges by scanning code.
-
-Hand-maintained README sections outside the generated block are allowed for conventions, build/run/test instructions, license, links, and motivation. `## Conventions` is for non-behavioral project standards and is not tested. Behavioral invariants belong in a capability spec or system doc requirement.
-
-When `/sdd4j new` has no capability argument, the hand-written README prose outside generated markers may be used as an inception seed. Read it, propose capability decomposition and a possible `## Vision`, then ask for confirmation before writing specs. Once specs exist, they are authoritative; do not keep README prose in sync.
+- **Doubles as the inception seed.** The hand-written prose outside the markers is what `/sdd4j new` (no argument) reads to bootstrap vision + specs (see `new`); SDD4J reads it, never rewrites it.
+- **Components diagram — projection, never inference.** Render only the *declared* wiring in the system doc's `## Components` (allowed calls + integration events) as a Mermaid graph: nodes are SDD4J capabilities, edges the declared directed relationships. **Never infer edges by scanning code** — that is discovery, not projection, and drift-prone. No `## Components` (a one-SDD4J capability system) → nodes only, or omit. Basic Mermaid `flowchart`/`graph` syntax (version-stable, corpus-dense); delegate diagram style to `/mermaid` or `/bce-diagrams`.
+- `## Conventions` is the home for **project-specific, non-behavioral standards** (coverage target, "money is always cents", review policy): **declared, not verified** — no `Sn`, no test — and distinct from a `System invariant`, which must be behavioral *and* tested, and from a `Dn` decision, which records a point-in-time choice with its rejected alternatives.
+- Optional: a one-SDD4J capability project needs none. No markers → `apply` leaves the README untouched.
 
 ## Determinism Boundary
 
@@ -158,15 +156,25 @@ When `/sdd4j new` has no capability argument, the hand-written README prose outs
 | Run verification | Stack skill or configured project command | Yes |
 | Locate code and map architecture | Architecture adapter plus `AGENTS.md` | Mostly deterministic |
 | Decompose natural-language feature into capabilities | SDD4J judgment, user-confirmed | No |
+| Record a confirmed choice as a `Dn` decision | this skill offers, **user-confirmed** — never recorded silently | no — semantic |
 | Author boundary operations and EARS statements | SDD4J judgment, user-confirmed when ambiguous | No |
 | Place packages and classes | Architecture adapter plus stack skill | Yes when configured |
-| Structural sync both directions | SDD4J using adapter rules and grep-visible ids | Mostly deterministic |
+| Structural sync both directions | SDD4J using adapter rules and resolvable test traces | Mostly deterministic |
 | Decide if code satisfies a requirement | SDD4J judgment grounded by passing tests | No |
 | Regenerate README generated block | SDD4J from package docs | Yes |
 
-Ask the stack skill or configured command whether the project is green. Do not self-certify convergence.
+- Ask the stack skill "are you green?" — never name a runner or test kind, and never self-certify convergence.
 
-## Mode: setup
+## Invocation modes: setup · new · apply · verify 
+
+Mode ownership:
+
+- `setup` writes project configuration only.
+- `new` writes capability and system contracts only.
+- `apply` writes implementation, tests, and generated projections.
+- `verify` performs read-only conformance analysis.
+
+### setup
 
 Use `setup` to configure SDD4J for an existing Java project before creating specs.
 
@@ -182,7 +190,7 @@ Workflow:
 
 When confidence is low, ask one concrete question at a time. Prefer enumerable choices with room for a custom answer.
 
-## Mode: new
+### new - declare
 
 Use `new` to declare a capability spec from a precise capability name, a natural-language feature description, or a README seed when no argument is provided. Coining a capability and extending an existing one are both valid `new` work because the novelty is the intended behavior.
 
@@ -201,8 +209,8 @@ For a capability name:
 3. Locate the target package from `AGENTS.md` or the architecture adapter.
 4. If `package-info.java` exists, do not overwrite it without explicit user confirmation.
 5. Clarify boundary operations, entities, happy paths, edge cases, and out-of-scope behavior until the contract is answerable from user intent.
-6. Author the package spec from the required section order in the resolved spec language.
-7. Ask the architecture and stack skills to scaffold only what their conventions require. Do not invent application behavior beyond the spec.
+6. Read `references/capability-spec-template.md` and author the package spec from it in the resolved spec language.
+7. Use the architecture adapter only to locate the capability package and validate its naming. Do not create implementation classes, entities, test classes, or stack-specific scaffolding during `new`; leave all code and test convergence to `/sdd4j apply <capability>`.
 8. Report the open gap: operation count, requirement count, entity count, and suggested `/sdd4j apply <capability>`.
 
 For a feature description:
@@ -220,7 +228,7 @@ For a README seed:
 3. Propose a `## Vision` line distilled from the seed for user acceptance or editing.
 4. Leave the seed prose human-owned. Do not rewrite it except for the generated block when explicitly requested.
 
-## Mode: apply
+### apply - converge
 
 Use `apply` to converge code and tests to an existing capability spec.
 
@@ -228,10 +236,10 @@ Workflow:
 
 1. Locate the capability's `package-info.java`; if missing, stop and suggest `/sdd4j new <capability>`.
 2. Resolve `Spec language` from `AGENTS.md ## SDD4J`; if absent, use English.
-3. Resolve the applicable architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question. If multiple adapters could apply, stop until the routing rule is explicit.
+3. Resolve the applicable architecture and stack from `AGENTS.md`, system package docs, repository conventions, or one focused question. If multiple adapters could apply, stop until the routing rule is explicit. Read the system doc's `## Decisions` if present — never close a gap with an approach a `Dn` rejected.
 4. Run the stack verification loop before editing when feasible. Treat a green result as necessary evidence, not proof of convergence.
 5. Read the structural gap both ways.
-6. Audit semantic conformance for every requirement: compare its trigger, preconditions, observable response, rejection behavior, constraints, and exact contract values with the traced tests and mapped implementation. A grep-visible id and a green test do not prove that the test asserts the requirement's semantics.
+6. Audit semantic conformance for every requirement: compare its trigger, preconditions, observable response, rejection behavior, constraints, and exact contract values with the traced tests and mapped implementation. A resolvable trace id and a green test do not prove that the test asserts the requirement's semantics.
 7. If verification is green and no structural or semantic gap or drift exists, stop and report already converged.
 8. Close spec-to-code gaps: each missing operation becomes the adapter-defined operation; each untested `Rn.m` gets a traceable test; each declared entity gets the adapter-defined representation when needed.
 9. Delegate EARS-to-test mapping to `sdd4j-ears-tests` when available: one parameterized or table-driven test per `### Rn` group and one labeled row or case per statement id `Rn.m`, adapted to the stack's test framework.
@@ -241,7 +249,7 @@ Workflow:
 
 Stop when verification is green and no structural or semantic gap or drift remains.
 
-## Mode: verify
+### verify
 
 Use `verify` to check conformance without intentionally implementing missing behavior.
 
@@ -259,35 +267,9 @@ Report:
 
 ## Spec Format
 
-Sections must appear in this order:
+Author capability specs from `references/capability-spec-template.md`.
 
-```md
-# Capability Title
-
-> One sentence responsibility.
-
-## Boundary
-
-- `operation-name` - Transport-neutral operation description.
-
-## Requirements
-
-### R1 Requirement group title
-
-- R1.1 - When <trigger>, the capability shall <response>.
-
-- R1.2 - If <unwanted condition>, then the capability shall <response>.
-
-## Entities
-
-- EntityName - Contract-relevant meaning.
-
-## Out of scope
-
-- Explicit non-goal.
-```
-
-`## Entities` and `## Out of scope` are optional, but include them when they prevent ambiguity.
+Sections must appear in this order: capability title and responsibility, `## Boundary`, `## Requirements`, optional `## Entities`, optional `## Decisions`, and `## Out of scope`. Keep `## Out of scope` even when empty.
 
 Boundary operations must be verb-noun and transport-neutral, such as `place-order`, not `POST /orders` or `click-submit`.
 
@@ -298,9 +280,12 @@ Boundary operations must be verb-noun and transport-neutral, such as `place-orde
 - Keep statements behavioral and verifiable.
 - Keep framework details, URLs, HTTP verbs, database tables, and implementation choices out of requirements unless the stack contract itself is the capability.
 - Use EARS as semantic patterns, not English-only keywords. In English specs, use `When`, `If`, `While`, `Where`, or ubiquitous EARS statements. In localized specs, express the same event-driven, unwanted-behavior, state-driven, optional-feature, ubiquitous, or complex pattern in the configured language.
-- Every boundary operation must trace to a requirement group `Rn`.
-- Every statement `Rn.m` must trace to at least one test that embeds the id according to the stack convention.
-- A test id with no matching statement is inverse drift.
+- Every boundary op traces to a group `Rn`; 
+- Every statement `Rn.m` traces to at least one executable test or case whose runner-visible identity resolves to its exact id.
+- Traceability must be complete in both directions: every statement has a test trace, and every literal or symbolic test trace resolves to an existing statement in the corresponding capability spec.
+- One statement may have multiple tests when they cover distinct scenarios or verification levels and the duplication is intentional.
+- A new `Rn.m` with no test is a gap, and a method, trace id, or `entity` type with no spec counterpart is inverse drift (surfaced, never absorbed into the spec).
+- The trace may be a literal display name or case label, or a symbol or annotation consumed by the test/reporting infrastructure whose display form is the exact id. A normalized Java identifier such as `R1_2` is valid only when it resolves to `R1.2`; JavaDoc and comments alone do not count.
 - Optional behavior is expressed with the optional-feature EARS pattern. In English specs, use `Where <feature is included>, the capability shall <response>.` Do not use `should` or `may` for contract behavior; use equivalent non-optional wording in localized specs.
 
 EARS templates:
@@ -322,8 +307,12 @@ Rules:
 
 - The `why` explains origin or intent, not current implementation.
 - The `why` is rationale, not contract, and is not tested.
-- The id must remain first so grep-visible traceability still works.
+- The id must remain first so spec parsing and trace resolution remain deterministic.
 - A `why` retires with its operation or statement and must not become an orphan.
+
+## Optional Decisions
+
+- A confirmed capability-local SDD4J decision may be logged before `## Out of scope`, under the same rules as the system doc's `## Decisions`: stable `Dn`, rejected alternatives in a trailing `_(why: …; rejected: …)_`, append-only (supersede, never edit), rationale not contract — no test, not a trace target.
 
 ## Drift Policy
 
