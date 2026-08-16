@@ -54,7 +54,7 @@ When composed with SDD4J:
 - `## Boundary` operations map to public entrypoints or application operations inside the feature package.
 - `## Entities` entries map to domain, model, aggregate, value object, or persistence entity classes inside the feature package or its subpackages.
 - Internal helpers, configuration classes, mappers, repositories, adapters, and persistence details are implementation unless the spec explicitly declares them as contract-relevant entities or operations.
-- Requirement ids must be visible in tests under the mirrored test package or the stack's test location.
+- Requirement ids must resolve to their exact runner-visible forms in executable tests or cases under the mirrored test package or the stack's test location. Traces may use literal ids or resolvable symbols; JavaDoc and comments alone do not count.
 
 ## Operation Mapping
 
@@ -73,7 +73,7 @@ Detect spec-to-code gaps:
 
 - A `## Boundary` operation has no mapped entrypoint or application operation in the feature package.
 - A `## Entities` item has no matching domain/model/entity type when the architecture mapping says it should be materialized.
-- A requirement id has no grep-visible test trace.
+- A requirement id has no executable test trace.
 
 Detect code-to-spec drift:
 
