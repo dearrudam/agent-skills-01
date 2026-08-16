@@ -58,7 +58,7 @@ When composed with SDD4J:
 - `## Boundary` operations map to controller, handler, listener, command, facade, or service methods according to project configuration.
 - `## Entities` entries map to model, domain, DTO, entity, aggregate, or persistence classes according to project configuration.
 - Repositories, clients, mappers, configuration, and persistence adapters are implementation unless the project mapping marks them contract-relevant.
-- Requirement ids must be visible in tests that exercise the capability, even if those tests live outside the spec package.
+- Requirement ids must resolve to their exact runner-visible forms in executable tests or cases that exercise the capability, even if those tests live outside the spec package. Traces may use literal ids or resolvable symbols; JavaDoc and comments alone do not count.
 
 ## Setup Bias
 
@@ -92,7 +92,7 @@ Detect spec-to-code gaps:
 
 - A `## Boundary` operation has no mapped controller, handler, facade, or service operation.
 - A `## Entities` item has no mapped model/domain/entity class when the mapping says it should be materialized.
-- A requirement id has no grep-visible test trace.
+- A requirement id has no executable test trace.
 
 Detect code-to-spec drift:
 
@@ -138,7 +138,9 @@ Capability mapping:
 - shared models: `User`, `Money` are excluded from capability entity drift unless declared
 
 Traceability:
-- requirement id must appear in test method name, display name, JavaDoc, or annotation
+- requirement id must resolve to its exact runner-visible `Rn.m` form through a display name, case label, symbol, or annotation consumed by the test/reporting infrastructure
+- a normalized Java identifier such as `R1_2` is valid only when the configured infrastructure resolves and displays it as `R1.2`
+- JavaDoc and comments alone do not count
 ```
 
 If the project cannot express a stable mapping, recommend sdd4j-package-by-feature for new capabilities while preserving sdd4j-package-by-layer for legacy code.
