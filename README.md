@@ -7,7 +7,7 @@ Reusable agent skills for AI-assisted software delivery workflows, spec-driven J
 | Skill | Purpose |
 | --- | --- |
 | [`sldd`](skills/sldd/README.md) | Routes SLDD workflows through gated intent, design, test, implementation, and verification steps. |
-| [`sdd4j`](skills/sdd4j/README.md) | Drives Spec-Driven Development for Java with `package-info.java` capability specs, EARS requirements, and traceable verification. |
+| [`sdd4j`](skills/sdd4j/README.md) | Drives Spec-Driven Development for Java with `package-info.java` capability specs, bundled authoring templates, EARS requirements, and traceable verification. |
 | [`sdd4j-package-by-feature`](skills/sdd4j-package-by-feature/README.md) | Maps SDD4J capabilities to co-located Java feature packages. |
 | [`sdd4j-package-by-layer`](skills/sdd4j-package-by-layer/README.md) | Maps SDD4J capabilities to technical layer packages such as controller, service, repository, model, domain, and DTO. |
 | [`sdd4j-bce`](skills/sdd4j-bce/README.md) | Maps SDD4J capabilities to Boundary-Control-Entity business components. |
@@ -16,6 +16,10 @@ Reusable agent skills for AI-assisted software delivery workflows, spec-driven J
 | [`spring-boot-server`](skills/spring-boot-server/README.md) | Defines stack-specific rules for long-running Java Spring Boot servers while preserving the project's selected architecture. |
 | [`quarkus-jnosql`](skills/quarkus-jnosql/README.md) | Guides Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
 | [`conventional-commit`](skills/conventional-commit/README.md) | Analyzes staged git diffs and generates Conventional Commit messages. |
+
+## Acknowledgements
+
+SDD4J was inspired by [SBCE](https://sbce.space/), created by Adam Bien. SDD4J generalizes its co-located spec and convergence principles through separate architecture adapters and stack skills.
 
 ## Install With The Skills CLI
 
