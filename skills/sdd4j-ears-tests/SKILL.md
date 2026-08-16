@@ -1,6 +1,7 @@
 ---
 name: sdd4j-ears-tests
-description: 'Generate traceable Java tests from SDD4J EARS requirements. Use with SDD4J when package-info.java capability specs have ## Requirements groups with ids like R1.1 and tests must be parameterized, table-driven, or otherwise grep-traceable to each statement. Trigger on SDD4J tests, EARS tests for Java, tests from package-info.java requirements, requirement id traceability, or converting SDD4J requirements into tests.'
+description: >
+  Generate parameterized (table-driven) tests from EARS requirement statements — the deterministic transform that turns an SDD4J capability spec's `## Requirements` into one parameterized test per requirement group and one labeled row per statement id. Stack-neutral; owns only the EARS→table mapping and the spec↔test trace, and delegates the test syntax to the composed stack skill (JUnit 5). Use whenever turning EARS requirements, acceptance criteria, or an SDD4J/`/sdd4j` spec into tests; whenever you see "When/While/If…then, the … shall …" statements that need covering; or when asked for table-driven, data-driven, or parameterized tests from a requirement group. Trigger on "SDD4J tests", "EARS", "parameterized tests", "table-driven tests", "data-driven tests", "tests from requirements", "tests from the spec", "cover requirement Rn", "generate tests for this capability", "acceptance criteria to tests".
 metadata:
   type: test-generation
 ---
@@ -9,7 +10,8 @@ metadata:
 
 ## Objective
 
-Turn SDD4J EARS requirement statements into traceable Java tests. This skill owns only the EARS-to-test transform and the requirement trace. The architecture adapter owns where capability code and tests belong. The stack skill owns concrete test syntax, runner, fixtures, and verification.
+Turn SDD4J EARS requirement statements into traceable parameterized Java tests. The leverage is structural: every EARS pattern is a (condition → response) tuple, and an SDD4J requirement group already collects statements that share one boundary operation — same arrange/act skeleton, only the data differs. That is the textbook precondition for parameterization, so the mapping is mechanical. 
+This skill owns only the EARS-to-test transform and the requirement trace. The architecture adapter owns where capability code and tests belong. The stack skill owns concrete test syntax, runner, fixtures, and verification.
 
 ## Input Contract
 
@@ -34,11 +36,12 @@ Do not edit the spec and do not coin requirement ids. Missing, duplicate, or mal
 
 ## Core Mapping
 
-- One requirement group `Rn` maps to one parameterized, table-driven, or grouped test skeleton when the group has multiple statements.
-- One statement `Rn.m` maps to one labeled row, case, or test title.
-- The statement id `Rn.m` must be grep-visible in the test source.
-- The row label, display name, method name, JavaDoc, or annotation must preserve the id exactly.
-- A removed id retires its row. A row with no matching statement is drift.
+- One requirement **group `Rn` maps to one parameterized, table-driven, or grouped test skeleton when the group has multiple statements**.
+- One **statement `Rn.m` → one row** in the parameter source.
+- The **statement id `Rn.m` resolves to the row's runner-visible display name**, so the spec↔test binding stays per-statement.
+- The trace may be a literal id or a symbol such as `R1_2` whose display form is the exact `R1.2` id.
+- An id that appears only in JavaDoc or a comment is not a trace.
+- The EARS pattern fixes the row's **role and shape** — you do not invent the columns, you read them off the pattern.
 
 The shared test body should exercise the boundary operation or application operation associated with the requirement group, as defined by SDD4J and the architecture adapter.
 
@@ -65,7 +68,7 @@ Generate without judgment:
 - Statement-to-row mapping.
 - Requirement id labels.
 - EARS role classification.
-- Bijection checks between spec ids and test ids.
+- Bidirectional trace coverage checks between spec ids and test ids.
 - The shared operation target when SDD4J and the architecture adapter already identify it.
 
 Leave authored or explicit TODOs for:
@@ -82,26 +85,24 @@ Prefer a failing TODO, disabled placeholder with a visible reason, or stack-idio
 - SDD4J owns the spec, stable ids, gap workflow, and drift policy.
 - The architecture adapter owns whether the operation is a controller method, application service method, BCE boundary method, listener, command, or another entrypoint.
 - The stack skill owns test syntax and the verification command.
-- This skill consumes `## Requirements` and emits or updates tests with grep-visible ids.
+- This skill consumes `## Requirements` and emits or updates tests with exact runner-visible ids, represented by literals or resolvable symbols.
 
 During `/sdd4j apply`, use this skill when an `Rn.m` statement lacks a test trace or when a requirement group should be represented as table-driven tests.
 
 ## Realization Rules
 
-Read `references/realizations.md` when concrete examples are useful. Use the project's existing test idiom; never introduce a second framework or style just because an example uses it.
+Read `references/realizations.md` when concrete examples are useful. Use the project's existing test idiom; never introduce a second framework or style just because an example uses it. 
 
-For Java stacks, common realizations are:
+The parameter-source mechanism and display-name form belong to the composed stack skill — read `references/realizations.md` for the per-stack shape (JUnit 5
+`@ParameterizedTest` + `@MethodSource`). Java stacks materialize the `Rn.m` ids as a generated per-BC `Requirement` annotation with a nested `Rn` enum — the label contract is unchanged because the enum's display form is the literal id; web stacks and the black-box `-st` module keep literal strings. Pick the one the project already uses; never introduce a second test idiom.
 
-- JUnit 5: `@ParameterizedTest` with `@MethodSource`, `@CsvSource`, or existing project convention.
-- zunit or zero-dependency tests: a loop over a case record/list where the id appears in assertion messages.
-- Plain tests: acceptable for one-statement groups if the id appears in the method name, display name, JavaDoc, or annotation.
-
-## Bijection Check
+## Trace Coverage Check
 
 Before and after editing tests, check:
 
-- Every `Rn.m` in the spec appears in at least one test trace.
-- Every test trace matching `R\d+\.\d+` belongs to an existing statement in that capability spec.
+- Every `Rn.m` in the spec resolves to at least one runner-visible test trace.
+- Every literal or symbolic test trace resolves to an existing statement in the corresponding capability spec.
+- For symbolic traces such as `R1_2`, resolve the symbol's configured display form before comparing it with the spec id.
 - One statement can have multiple tests only when each test covers a distinct level or scenario and the duplication is intentional.
 - A test must not claim an id from another capability unless the project explicitly has cross-capability system tests.
 
