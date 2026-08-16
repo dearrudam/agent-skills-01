@@ -66,7 +66,7 @@ When composed with SDD4J:
 - `## Requirements` maps to behavior and traceable tests.
 - `## Entities` maps to domain/entity types in the `entity` layer.
 - The `control` layer is implementation detail and has no spec section.
-- Requirement ids must be grep-visible in tests according to the stack's trace convention.
+- Requirement ids must resolve to their exact runner-visible forms in executable tests or cases according to the stack's trace convention. Traces may use literal ids or resolvable symbols; JavaDoc and comments alone do not count.
 
 ## Layer Responsibilities
 
@@ -102,7 +102,7 @@ Detect spec-to-code gaps:
 
 - A `## Boundary` operation has no discoverable boundary-layer operation.
 - A `## Entities` item has no corresponding type in `entity` when it should be materialized.
-- A requirement id has no grep-visible test trace.
+- A requirement id has no executable test trace.
 
 Detect code-to-spec drift:
 
@@ -145,7 +145,9 @@ Architecture layout:
 - entity package: `entity`
 
 Traceability:
-- requirement id must appear in test method name, display name, JavaDoc, or annotation
+- requirement id must resolve to its exact runner-visible `Rn.m` form through a display name, case label, symbol, or annotation consumed by the test/reporting infrastructure
+- a normalized Java identifier such as `R1_2` is valid only when the configured infrastructure resolves and displays it as `R1.2`
+- JavaDoc and comments alone do not count
 ```
 
 If the repository already has a separate BCE skill or convention document, follow it for detailed BCE coding rules and use this skill only for SDD4J mapping decisions.

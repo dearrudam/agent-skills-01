@@ -6,6 +6,8 @@ Maps an SDD4J Java capability spec to a Boundary-Control-Entity business compone
 
 Use this architecture adapter when a Java project organizes capabilities as BCE business components with component-local `boundary`, `control`, and `entity` layers.
 
+Compose it with `sdd4j` for the spec workflow and a Java stack skill for implementation conventions and verification. Use it only when each capability can map to one strict BCE business component.
+
 ## Mapping
 
 ```mermaid
@@ -16,7 +18,7 @@ flowchart LR
   P --> R[Requirements]
   P --> E[Entities]
   BO --> BL[boundary layer]
-  R --> T[Traceable tests]
+  R --> T[Exact runner-visible trace tests]
   E --> EL[entity layer]
   B --> CL[control layer]
   CL -. implementation detail .-> R
@@ -38,7 +40,9 @@ src/main/java/<base>/<component>/
 - `## Boundary` maps only to boundary-layer operations.
 - `## Entities` maps to contract-relevant types in the entity layer.
 - `control` is implementation detail and has no spec section.
-- Requirement ids must be visible in tests according to the stack convention.
+- Requirement ids must resolve to exact runner-visible test identities through literal ids or resolvable symbols according to the stack convention; JavaDoc and comments alone do not count.
+- Public boundary operations, contract-relevant entity types, or test traces without spec counterparts are reported as inverse drift.
+- Cross-component calls, events, shared nouns, and system invariants belong in the system package doc or project architecture documentation.
 - Do not mix BCE, feature-package, and layered adapters inside one capability.
 
 ## Source Contract
