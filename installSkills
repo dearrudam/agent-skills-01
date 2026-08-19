@@ -10,7 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 
 String name = MethodHandles.lookup().lookupClass().getName();
-String version = "2026-07-05.2";
+String version = "2026-07-05.3";
 Path repositoryRoot = Path.of(System.getProperty("jdk.launcher.sourcefile")).toAbsolutePath().normalize().getParent();
 Path sourceSkillsDirectory = repositoryRoot.resolve("skills");
 Path defaultTargetDirectory = Path.of(System.getProperty("user.home"), ".agents", "skills");
@@ -206,8 +206,7 @@ List<Path> previousEntries(Path targetDirectory, String skillName) throws IOExce
 }
 
 boolean isPreviousSkillEntry(Path path, String skillName) {
-    var fileName = path.getFileName().toString();
-    return fileName.equals(skillName) || fileName.startsWith(skillName + "-");
+    return path.getFileName().toString().equals(skillName);
 }
 
 CreationSummary createSymbolicLink(Skill skill, Path targetDirectory) throws IOException {
