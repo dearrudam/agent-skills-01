@@ -49,6 +49,8 @@ Use `--copy` to install copies instead of symlinks:
 
 The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes previous entries for selected skills in the target directory, and writes each skill to `<target>/<skill-name>`. Reload the consuming tool after changing installed skills.
 
+When a skill fails to install, the installer reports the failure, keeps installing the remaining skills, counts it under `skills failed`, and exits with status `1`. Failed copies are rolled back so no partial skill directory is left behind. It exits with status `2` on invalid arguments, and aborts when standard input is closed before a prompt is answered instead of treating the missing answer as a decline.
+
 ## Install Manually
 
 Install manually for Claude Code:

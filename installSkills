@@ -3,44 +3,57 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandles;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 String name = MethodHandles.lookup().lookupClass().getName();
-String version = "2026-07-05.2";
-Path repositoryRoot = Path.of(System.getProperty("jdk.launcher.sourcefile")).toAbsolutePath().normalize().getParent();
-Path sourceSkillsDirectory = repositoryRoot.resolve("skills");
+String version = "2026-07-05.3";
 Path defaultTargetDirectory = Path.of(System.getProperty("user.home"), ".agents", "skills");
 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
-void main(String... args) throws Exception {
+void main(String... args) {
+    var status = 1;
+    try {
+        status = run(args);
+    } catch (Exception exception) {
+        reportFailure("installation aborted", exception);
+    }
+    System.exit(status);
+}
+
+int run(String... args) throws IOException {
     var options = parse(args);
     if (options.help()) {
         usage();
-        return;
+        return 0;
     }
     if (options.version()) {
         IO.println(name + " " + version);
-        return;
+        return 0;
     }
 
+    var sourceSkillsDirectory = sourceSkillsDirectory();
     if (!Files.isDirectory(sourceSkillsDirectory)) {
         System.err.println("Error: skills source directory not found: " + sourceSkillsDirectory);
         System.err.println("Place this script in the repository root before running it.");
-        System.exit(1);
+        return 1;
     }
 
     var skills = discoverSkills();
     if (skills.isEmpty()) {
         System.err.println("Error: no skills found under: " + sourceSkillsDirectory);
         System.err.println("Each skill directory must contain a SKILL.md file.");
-        System.exit(1);
+        return 1;
     }
 
-    Files.createDirectories(options.targetDirectory());
+    createTargetDirectory(options.targetDirectory());
 
     IO.println();
     IO.println("Skills development install");
@@ -49,11 +62,15 @@ void main(String... args) throws Exception {
     IO.println("Mode:   " + options.mode().value);
     IO.println();
 
-    var summary = new InstallSummary(0, 0, 0, 0, 0, 0, 0);
+    var summary = new InstallSummary(0, 0, 0, 0, 0, 0, 0, 0);
     for (var skill : skills) {
         if (confirmInstall(skill)) {
-            summary = summary.withInstalledSkill();
-            summary = summary.plus(installSkill(skill, options));
+            try {
+                summary = summary.withInstalledSkill().plus(installSkill(skill, options));
+            } catch (IOException | UncheckedIOException exception) {
+                reportFailure("skill '" + skill.name() + "' was not installed", exception);
+                summary = summary.withFailedSkill();
+            }
         } else {
             IO.println("  skip            " + skill.name());
             summary = summary.withSkippedSkill();
@@ -64,13 +81,73 @@ void main(String... args) throws Exception {
     IO.println("Summary");
     IO.println("  skills installed:    " + summary.skillsInstalled());
     IO.println("  skills skipped:      " + summary.skillsSkipped());
+    IO.println("  skills failed:       " + summary.skillsFailed());
     IO.println("  symlinks removed:    " + summary.removedLinks());
     IO.println("  directories removed: " + summary.removedDirectories());
     IO.println("  files skipped:       " + summary.skippedFiles());
     IO.println("  links created:       " + summary.linksCreated());
     IO.println("  copies created:      " + summary.copiesCreated());
     IO.println();
+
+    if (summary.skillsFailed() > 0) {
+        System.err.println("Error: " + summary.skillsFailed() + " skill(s) failed to install.");
+        return 1;
+    }
+
     IO.println("Done.");
+    return 0;
+}
+
+Path repositoryRoot() {
+    var sourceFile = System.getProperty("jdk.launcher.sourcefile");
+    if (sourceFile == null || sourceFile.isBlank()) {
+        throw new IllegalStateException(
+                "cannot resolve the repository root: run the installer as './installSkills'"
+                        + " or 'java --source 25 installSkills'");
+    }
+    var root = Path.of(sourceFile).toAbsolutePath().normalize().getParent();
+    if (root == null) {
+        throw new IllegalStateException("cannot resolve the repository root from: " + sourceFile);
+    }
+    return root;
+}
+
+Path sourceSkillsDirectory() {
+    return repositoryRoot().resolve("skills");
+}
+
+void createTargetDirectory(Path targetDirectory) throws IOException {
+    try {
+        Files.createDirectories(targetDirectory);
+    } catch (IOException exception) {
+        throw new IOException("cannot create the target skills directory: " + targetDirectory, exception);
+    }
+}
+
+void reportFailure(String context, Throwable throwable) {
+    System.err.println("Error: " + context + ": " + describe(throwable));
+}
+
+String describe(Throwable throwable) {
+    var reasons = new ArrayList<String>();
+    var rootCause = throwable;
+    for (var current = throwable; current != null && current != current.getCause(); current = current.getCause()) {
+        rootCause = current;
+        var message = current.getMessage();
+        var reason = message == null || message.isBlank() ? current.getClass().getSimpleName() : message;
+        if (reasons.isEmpty() || !reasons.getLast().contains(reason)) {
+            reasons.add(reason);
+        }
+    }
+
+    var description = new StringBuilder(String.join(" -> ", reasons))
+            .append(" [")
+            .append(rootCause.getClass().getSimpleName())
+            .append(']');
+    for (var suppressed : throwable.getSuppressed()) {
+        description.append(" (also failed: ").append(describe(suppressed)).append(')');
+    }
+    return description.toString();
 }
 
 Options parse(String... args) {
@@ -126,6 +203,7 @@ String usageText() {
 }
 
 List<Skill> discoverSkills() throws IOException {
+    var sourceSkillsDirectory = sourceSkillsDirectory();
     try (var paths = Files.list(sourceSkillsDirectory)) {
         return paths
                 .filter(Files::isDirectory)
@@ -143,7 +221,12 @@ boolean isSkillDirectory(Path path) {
 boolean confirmInstall(Skill skill) throws IOException {
     IO.println("Install skill '%s'? [y/N]".formatted(skill.name()));
     var answer = input.readLine();
-    return answer != null && List.of("y", "yes").contains(answer.strip().toLowerCase());
+    if (answer == null) {
+        throw new IllegalStateException(
+                "standard input closed before the prompt for skill '" + skill.name()
+                        + "' was answered: run the installer interactively");
+    }
+    return List.of("y", "yes").contains(answer.strip().toLowerCase(Locale.ROOT));
 }
 
 InstallSummary installSkill(Skill skill, Options options) throws IOException {
@@ -157,6 +240,7 @@ InstallSummary installSkill(Skill skill, Options options) throws IOException {
     };
 
     return new InstallSummary(
+            0,
             0,
             0,
             removal.removedLinks(),
@@ -212,7 +296,12 @@ boolean isPreviousSkillEntry(Path path, String skillName) {
 
 CreationSummary createSymbolicLink(Skill skill, Path targetDirectory) throws IOException {
     IO.println("Creating symbolic link");
-    Files.createSymbolicLink(targetDirectory.resolve(skill.name()), skill.path());
+    var link = targetDirectory.resolve(skill.name());
+    try {
+        Files.createSymbolicLink(link, skill.path());
+    } catch (UnsupportedOperationException | FileSystemException exception) {
+        throw new IOException("cannot create symbolic link " + link + ": retry with --copy", exception);
+    }
     IO.println("  link            " + skill.name());
     return new CreationSummary(1, 0);
 }
@@ -234,6 +323,16 @@ void copyDirectory(Path source, Path target) throws IOException {
                 Files.copy(path, destination);
             }
         }
+    } catch (IOException | UncheckedIOException exception) {
+        var failure = new IOException("cannot copy " + source + " to " + target, exception);
+        try {
+            if (Files.exists(target)) {
+                deleteDirectory(target);
+            }
+        } catch (IOException cleanupFailure) {
+            failure.addSuppressed(cleanupFailure);
+        }
+        throw failure;
     }
 }
 
@@ -241,7 +340,11 @@ void deleteDirectory(Path directory) throws IOException {
     try (var paths = Files.walk(directory)) {
         var deletionOrder = paths.sorted(Comparator.reverseOrder()).toList();
         for (var path : deletionOrder) {
-            Files.delete(path);
+            try {
+                Files.delete(path);
+            } catch (IOException exception) {
+                throw new IOException("cannot delete " + path, exception);
+            }
         }
     }
 }
@@ -261,6 +364,7 @@ record CreationSummary(int links, int copies) {
 record InstallSummary(
         int skillsInstalled,
         int skillsSkipped,
+        int skillsFailed,
         int removedLinks,
         int removedDirectories,
         int skippedFiles,
@@ -271,6 +375,7 @@ record InstallSummary(
         return new InstallSummary(
                 this.skillsInstalled + 1,
                 this.skillsSkipped,
+                this.skillsFailed,
                 this.removedLinks,
                 this.removedDirectories,
                 this.skippedFiles,
@@ -282,6 +387,19 @@ record InstallSummary(
         return new InstallSummary(
                 this.skillsInstalled,
                 this.skillsSkipped + 1,
+                this.skillsFailed,
+                this.removedLinks,
+                this.removedDirectories,
+                this.skippedFiles,
+                this.linksCreated,
+                this.copiesCreated);
+    }
+
+    InstallSummary withFailedSkill() {
+        return new InstallSummary(
+                this.skillsInstalled,
+                this.skillsSkipped,
+                this.skillsFailed + 1,
                 this.removedLinks,
                 this.removedDirectories,
                 this.skippedFiles,
@@ -293,6 +411,7 @@ record InstallSummary(
         return new InstallSummary(
                 this.skillsInstalled + other.skillsInstalled,
                 this.skillsSkipped + other.skillsSkipped,
+                this.skillsFailed + other.skillsFailed,
                 this.removedLinks + other.removedLinks,
                 this.removedDirectories + other.removedDirectories,
                 this.skippedFiles + other.skippedFiles,
