@@ -1,0 +1,36 @@
+{
+  "skill_name": "java-conventions",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review and rewrite this Java class to follow modern Java 25 conventions from the java-conventions skill: evals/files/OrderService.java",
+      "expected_output": "The class uses records or modern types, var where appropriate, java.time instead of Date, Path over File, streams over loops, method references, List/Map.of for empty collections, System.Logger, no get prefix, no checked exceptions, try-with-resources, and no raw generic types.",
+      "files": ["evals/files/OrderService.java"],
+      "expectations": [
+        "Output uses java.time types (Instant, LocalDate, etc.) instead of java.util.Date",
+        "Output uses Path or Files instead of java.io.File",
+        "Output uses streams (filter, map, toList, collect) instead of for loops",
+        "Output uses try-with-resources for the reader",
+        "Output does not use 'get' as method prefix (e.g., orders() not getOrders())",
+        "Output uses List.of() and Map.of() for empty collections",
+        "Output does not declare throws Exception",
+        "Output does not use raw generic types"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Write a Java 25 method that reads all lines from a file at a given Path and returns them as an uppercase, comma-separated string. Use only Java SE APIs. Target Java 25.",
+      "expected_output": "A concise Java 25 method using var, Files.lines, try-with-resources, streams, String.formatted or String.join, and no checked exceptions.",
+      "files": [],
+      "expectations": [
+        "Code uses var for local variables",
+        "Code uses Files.lines with try-with-resources",
+        "Code uses a stream pipeline (map, collect, joining)",
+        "Code does not throw checked exceptions",
+        "Code uses Path as the parameter type",
+        "Code uses method references or lambdas correctly",
+        "Code does not use String concatenation with + for multiline strings"
+      ]
+    }
+  ]
+}

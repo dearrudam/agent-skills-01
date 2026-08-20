@@ -17,6 +17,7 @@ Reusable agent skills for AI-assisted software delivery workflows, spec-driven J
 | [`microprofile-server`](skills/microprofile-server/README.md) | Defines stack-specific rules for long-running Java MicroProfile / Jakarta EE servers while preserving the project's selected architecture. |
 | [`quarkus-jnosql`](skills/quarkus-jnosql/README.md) | Guides Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
 | [`java-distiller`](skills/java-distiller/README.md) | Simplifies, modernizes, refactors, and beautifies existing Java code. |
+| [`java-conventions`](skills/java-conventions/README.md) | Enforces versioned, idiomatic Java language conventions for writing, generating, or reviewing Java code. |
 | [`conventional-commit`](skills/conventional-commit/README.md) | Analyzes staged git diffs and generates Conventional Commit messages. |
 
 ## Acknowledgements
