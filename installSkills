@@ -138,9 +138,9 @@ String usageText() {
 }
 
 List<Skill> discoverSkills() throws IOException {
-    return listEntries(sourceSkillsDirectory, path -> Files.isDirectory(path) && isSkillDirectory(path))
+    return listEntries(sourceSkillsDirectory, this::isSkillDirectory)
             .stream()
-            .map(path -> new Skill(path.getFileName().toString(), path))
+            .map(Skill::of)
             .toList();
 }
 
@@ -148,13 +148,13 @@ List<Path> listEntries(Path directory, Predicate<Path> filter) throws IOExceptio
     try (var paths = Files.list(directory)) {
         return paths
                 .filter(filter)
-                .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                .sorted(Comparator.comparing(Path::getFileName))
                 .toList();
     }
 }
 
 boolean isSkillDirectory(Path path) {
-    return Files.isRegularFile(path.resolve("SKILL.md"));
+    return Files.isDirectory(path) && Files.isRegularFile(path.resolve("SKILL.md"));
 }
 
 boolean confirmInstall(Skill skill) throws IOException {
@@ -166,7 +166,7 @@ boolean confirmInstall(Skill skill) throws IOException {
 InstallSummary installSkill(Skill skill, Options options) throws IOException {
     IO.println("Installing skill: " + skill.name());
     IO.println("Cleaning previous entries for " + skill.name());
-    var removal = cleanPreviousEntries(options.targetDirectory(), skill.name());
+    var removal = cleanPreviousEntries(options.targetDirectory(), skill);
 
     var creation = switch (options.mode()) {
         case symlink -> createSymbolicLink(skill, options.targetDirectory());
@@ -176,8 +176,8 @@ InstallSummary installSkill(Skill skill, Options options) throws IOException {
     return removal.plus(creation);
 }
 
-InstallSummary cleanPreviousEntries(Path targetDirectory, String skillName) throws IOException {
-    var entries = listEntries(targetDirectory, path -> isPreviousSkillEntry(path, skillName));
+InstallSummary cleanPreviousEntries(Path targetDirectory, Skill skill) throws IOException {
+    var entries = listEntries(targetDirectory, skill::isPreviousEntry);
     if (entries.isEmpty()) {
         IO.println("  none");
         return InstallSummary.NONE;
@@ -201,10 +201,6 @@ InstallSummary cleanPreviousEntries(Path targetDirectory, String skillName) thro
     }
 
     return summary;
-}
-
-boolean isPreviousSkillEntry(Path path, String skillName) {
-    return path.getFileName().toString().equals(skillName);
 }
 
 InstallSummary createSymbolicLink(Skill skill, Path targetDirectory) throws IOException {
@@ -248,6 +244,14 @@ record Options(Path targetDirectory, InstallMode mode, boolean help, boolean ver
 }
 
 record Skill(String name, Path path) {
+
+    static Skill of(Path path) {
+        return new Skill(path.getFileName().toString(), path);
+    }
+
+    boolean isPreviousEntry(Path path) {
+        return path.getFileName().toString().equals(name);
+    }
 }
 
 record InstallSummary(
