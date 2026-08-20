@@ -51,6 +51,17 @@ The installer discovers skill directories under `skills/`, prompts before instal
 
 When a skill fails to install, the installer reports the failure, keeps installing the remaining skills, counts it under `skills failed`, and exits with status `1`. Failed copies are rolled back so no partial skill directory is left behind. It exits with status `2` on invalid arguments, and aborts when standard input is closed before a prompt is answered instead of treating the missing answer as a decline.
 
+## Test The Installer
+
+The `installSkills` behavior is covered by a shell test suite that runs the script against
+temporary fixture repositories. It requires Java 25+ and no build tooling:
+
+```bash
+./tests/run.sh
+```
+
+See [`tests/README.md`](tests/README.md) for the layout and for how to add tests.
+
 ## Install Manually
 
 Install manually for Claude Code:
