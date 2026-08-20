@@ -1,0 +1,41 @@
+{
+  "skill_name": "java-distiller",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Distill this Java file: evals/files/ImperativeLoop.java",
+      "expected_output": "The loop is converted to a stream with filter and map, var is used for local variables, and the output follows the Distilled Java Code format with a Changes list.",
+      "files": ["evals/files/ImperativeLoop.java"],
+      "expectations": [
+        "Output contains a '## Distilled Java Code' section",
+        "Output contains a '### Changes' section",
+        "Distilled code uses var for local variables",
+        "Distilled code replaces the for-loop with a stream pipeline"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Modernize this Java file: evals/files/LegacyDate.java",
+      "expected_output": "Date and Calendar usage is replaced with java.time (LocalDate, DateTimeFormatter), and the output follows the Distilled Java Code format with a Changes list.",
+      "files": ["evals/files/LegacyDate.java"],
+      "expectations": [
+        "Output contains a '## Distilled Java Code' section",
+        "Output contains a '### Changes' section",
+        "Distilled code uses java.time types such as LocalDate or Instant",
+        "Distilled code removes SimpleDateFormat and Calendar"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Simplify this Java file: evals/files/DataCarrier.java",
+      "expected_output": "The data carrier class is replaced with a Java record, redundant boilerplate is removed, and the output follows the Distilled Java Code format with a Changes list.",
+      "files": ["evals/files/DataCarrier.java"],
+      "expectations": [
+        "Output contains a '## Distilled Java Code' section",
+        "Output contains a '### Changes' section",
+        "Distilled code uses a record for the data carrier",
+        "Distilled code removes manual equals, hashCode, and toString"
+      ]
+    }
+  ]
+}

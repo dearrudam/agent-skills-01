@@ -16,6 +16,7 @@ Reusable agent skills for AI-assisted software delivery workflows, spec-driven J
 | [`spring-boot-server`](skills/spring-boot-server/README.md) | Defines stack-specific rules for long-running Java Spring Boot servers while preserving the project's selected architecture. |
 | [`microprofile-server`](skills/microprofile-server/README.md) | Defines stack-specific rules for long-running Java MicroProfile / Jakarta EE servers while preserving the project's selected architecture. |
 | [`quarkus-jnosql`](skills/quarkus-jnosql/README.md) | Guides Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
+| [`java-distiller`](skills/java-distiller/README.md) | Simplifies, modernizes, refactors, and beautifies existing Java code. |
 | [`conventional-commit`](skills/conventional-commit/README.md) | Analyzes staged git diffs and generates Conventional Commit messages. |
 
 ## Acknowledgements
