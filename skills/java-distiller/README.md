@@ -39,3 +39,7 @@ flowchart TD
 ## Source Contract
 
 See [`SKILL.md`](SKILL.md) for the executable skill instructions and [references/transformations.md](references/transformations.md) for the transformation catalog.
+
+## Credits
+
+The `java-distiller` skill is adapted from [Adam Bien's `airails` Java distiller](https://github.com/AdamBien/airails/tree/main/java/java-distiller).

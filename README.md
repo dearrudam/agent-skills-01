@@ -24,6 +24,8 @@ Reusable agent skills for AI-assisted software delivery workflows, spec-driven J
 
 SDD4J was inspired by [SBCE](https://sbce.space/), created by Adam Bien. SDD4J generalizes its co-located spec and convergence principles through separate architecture adapters and stack skills.
 
+The `java-distiller` skill is adapted from [Adam Bien's `airails` Java distiller](https://github.com/AdamBien/airails/tree/main/java/java-distiller).
+
 ## Install With The Skills CLI
 
 ```bash
