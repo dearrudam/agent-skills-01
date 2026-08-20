@@ -47,7 +47,7 @@ Use `--copy` to install copies instead of symlinks:
 ./installSkills --copy
 ```
 
-The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes previous entries for selected skills in the target directory, and writes each skill to `<target>/<skill-name>`. Reload the consuming tool after changing installed skills.
+The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes the previous entry with the exact same name in the target directory, and writes each skill to `<target>/<skill-name>`. Entries whose names merely start with the selected skill name are left untouched. Reload the consuming tool after changing installed skills.
 
 ## Install Manually
 
