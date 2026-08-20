@@ -308,7 +308,11 @@ InstallSummary copySkill(Skill skill, Path targetDirectory) throws IOException {
 void copyDirectory(Path source, Path target) throws IOException {
     try {
         for (var path : walk(source, Comparator.naturalOrder())) {
-            var destination = target.resolve(source.relativize(path));
+            var relative = source.relativize(path);
+            if (relative.getNameCount() > 0 && "evals".equals(relative.getName(0).toString())) {
+                continue;
+            }
+            var destination = target.resolve(relative);
             if (Files.isDirectory(path)) {
                 Files.createDirectories(destination);
             } else {

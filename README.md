@@ -50,7 +50,7 @@ Use `--copy` to install copies instead of symlinks:
 ./installSkills --copy
 ```
 
-The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes the previous entry with the exact same name in the target directory, and writes each skill to `<target>/<skill-name>`. Entries whose names merely start with the selected skill name are left untouched. Reload the consuming tool after changing installed skills.
+When copying, the installer skips the top-level `evals` directory inside each skill. The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes the previous entry with the exact same name in the target directory, and writes each skill to `<target>/<skill-name>`. Entries whose names merely start with the selected skill name are left untouched. Reload the consuming tool after changing installed skills.
 
 When a skill fails to install, the installer reports the failure, keeps installing the remaining skills, counts it under `skills failed`, and exits with status `1`. Failed copies are rolled back so no partial skill directory is left behind. It exits with status `2` on invalid arguments, and aborts when standard input is closed before a prompt is answered instead of treating the missing answer as a decline.
 
