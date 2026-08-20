@@ -58,15 +58,15 @@ test_unrecognized_answer_skips_skill() {
     assert_absent "${fixture}/target/alpha"
 }
 
-test_closed_input_skips_remaining_skills() {
+test_closed_input_aborts_installation() {
     local fixture
     fixture="$(new_fixture alpha beta)"
     run_installer "${fixture}" '' --target "${fixture}/target"
-    assert_status 0
-    assert_stdout_contains '  skip            alpha'
-    assert_stdout_contains '  skip            beta'
-    assert_stdout_contains '  skills installed:    0'
-    assert_stdout_contains '  skills skipped:      2'
+    assert_status 1
+    assert_stderr_contains "standard input closed before the prompt for skill 'alpha' was answered"
+    assert_stderr_contains 'IllegalStateException'
+    assert_absent "${fixture}/target/alpha"
+    assert_absent "${fixture}/target/beta"
 }
 
 test_answers_are_applied_per_skill() {

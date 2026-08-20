@@ -77,7 +77,7 @@ test_previous_directory_is_removed_recursively_before_install() {
     assert_symlink_to "${fixture}/target/alpha" "${fixture}/skills/alpha"
 }
 
-test_prefixed_previous_entries_are_removed() {
+test_exact_previous_entries_are_removed_prefixed_entries_are_ignored() {
     local fixture
     fixture="$(new_fixture alpha)"
     mkdir -p "${fixture}/target/alpha-backup" "${fixture}/unrelated" "${fixture}/target/alphabet"
@@ -85,16 +85,16 @@ test_prefixed_previous_entries_are_removed() {
     run_installer "${fixture}" 'y
 ' --target "${fixture}/target"
     assert_status 0
-    assert_stdout_contains '  remove dir      alpha-backup'
-    assert_stdout_contains '  remove symlink  alpha-old'
-    assert_absent "${fixture}/target/alpha-backup"
-    assert_absent "${fixture}/target/alpha-old"
+    assert_stdout_contains '  none'
+    assert_directory "${fixture}/target/alpha-backup"
+    assert_symlink_to "${fixture}/target/alpha-old" "${fixture}/unrelated"
     assert_directory "${fixture}/target/alphabet"
+    assert_symlink_to "${fixture}/target/alpha" "${fixture}/skills/alpha"
 }
 
-# A regular file occupying the skill name is never deleted, so the install of that
-# skill cannot complete. This pins the current behavior, including the failure exit.
-test_previous_regular_file_is_skipped_and_blocks_the_install() {
+# A regular file occupying the exact skill name is reported as a skipped file, the
+# symlink cannot be created, the skill is marked failed, and the summary exits 1.
+test_previous_regular_file_is_skipped_and_marked_failed() {
     local fixture
     fixture="$(new_fixture alpha)"
     mkdir -p "${fixture}/target"
@@ -103,7 +103,10 @@ test_previous_regular_file_is_skipped_and_blocks_the_install() {
 ' --target "${fixture}/target"
     assert_status 1
     assert_stdout_contains '  skip file       alpha'
-    assert_stderr_contains 'FileAlreadyExistsException'
+    assert_stdout_contains '  skills failed:       1'
+    assert_stderr_contains "skill 'alpha' was not installed"
+    assert_stderr_contains 'cannot create symbolic link'
+    assert_stderr_contains 'retry with --copy'
     assert_regular_file "${fixture}/target/alpha"
     assert_file_content "${fixture}/target/alpha" 'not a skill'
 }
@@ -159,6 +162,7 @@ n
     assert_status 0
     assert_stdout_contains '  skills installed:    2'
     assert_stdout_contains '  skills skipped:      1'
+    assert_stdout_contains '  skills failed:       0'
     assert_stdout_contains '  symlinks removed:    1'
     assert_stdout_contains '  directories removed: 1'
     assert_stdout_contains '  files skipped:       0'
