@@ -11,7 +11,7 @@ Reusable agent skills for AI-assisted software delivery workflows, spec-driven J
 | [`sdd4j-package-by-feature`](skills/sdd4j-package-by-feature/README.md) | Maps SDD4J capabilities to co-located Java feature packages. |
 | [`sdd4j-package-by-layer`](skills/sdd4j-package-by-layer/README.md) | Maps SDD4J capabilities to technical layer packages such as controller, service, repository, model, domain, and DTO. |
 | [`sdd4j-bce`](skills/sdd4j-bce/README.md) | Maps SDD4J capabilities to Boundary-Control-Entity business components. |
-| [`sdd4j-ears-tests`](skills/sdd4j-ears-tests/README.md) | Generates grep-traceable Java tests from SDD4J EARS requirement groups and statement ids. |
+| [`sdd4j-ears-tests`](skills/sdd4j-ears-tests/README.md) | Transforms SDD4J EARS requirement groups into traceable parameterized tests, with one runner-visible case per statement and generated per-BC requirement symbols for Java stacks. |
 | [`migrate-to-bce`](skills/migrate-to-bce/README.md) | Plans and applies incremental BCE migrations, including SBCE/SDD4J spec reverse engineering with test ID backfill. |
 | [`spring-boot-server`](skills/spring-boot-server/README.md) | Defines stack-specific rules for long-running Java Spring Boot servers while preserving the project's selected architecture. |
 | [`quarkus-jnosql`](skills/quarkus-jnosql/README.md) | Guides Quarkus applications that use Quarkus JNoSQL, Eclipse JNoSQL, Jakarta NoSQL, or Jakarta Data repositories. |
@@ -47,7 +47,7 @@ Use `--copy` to install copies instead of symlinks:
 ./installSkills --copy
 ```
 
-The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes previous entries for selected skills in the target directory, and writes each skill to `<target>/<skill-name>`. Reload the consuming tool after changing installed skills.
+The installer discovers skill directories under `skills/`, prompts before installing each selected skill, removes the previous entry with the exact same name in the target directory, and writes each skill to `<target>/<skill-name>`. Entries whose names merely start with the selected skill name are left untouched. Reload the consuming tool after changing installed skills.
 
 When a skill fails to install, the installer reports the failure, keeps installing the remaining skills, counts it under `skills failed`, and exits with status `1`. Failed copies are rolled back so no partial skill directory is left behind. It exits with status `2` on invalid arguments, and aborts when standard input is closed before a prompt is answered instead of treating the missing answer as a decline.
 

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Locale;
 
 String name = MethodHandles.lookup().lookupClass().getName();
-String version = "2026-07-05.3";
+String version = "2026-07-05.4";
 Path defaultTargetDirectory = Path.of(System.getProperty("user.home"), ".agents", "skills");
 BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
 
@@ -290,8 +290,7 @@ List<Path> previousEntries(Path targetDirectory, String skillName) throws IOExce
 }
 
 boolean isPreviousSkillEntry(Path path, String skillName) {
-    var fileName = path.getFileName().toString();
-    return fileName.equals(skillName) || fileName.startsWith(skillName + "-");
+    return path.getFileName().toString().equals(skillName);
 }
 
 CreationSummary createSymbolicLink(Skill skill, Path targetDirectory) throws IOException {
