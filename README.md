@@ -26,6 +26,8 @@ SDD4J was inspired by [SBCE](https://sbce.space/), created by Adam Bien. SDD4J g
 
 The `java-distiller` skill is adapted from [Adam Bien's `airails` Java distiller](https://github.com/AdamBien/airails/tree/main/java/java-distiller).
 
+The `microprofile-server` skill is based on [Adam Bien's `airails` MicroProfile server skill](https://github.com/AdamBien/airails/tree/main/bce/microprofile-server).
+
 ## Install With The Skills CLI
 
 ```bash

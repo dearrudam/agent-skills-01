@@ -46,3 +46,7 @@ flowchart TD
 ## Source Contract
 
 See [`SKILL.md`](SKILL.md) for the executable skill instructions.
+
+## Credits
+
+The `microprofile-server` skill is based on [Adam Bien's `airails` MicroProfile server skill](https://github.com/AdamBien/airails/tree/main/bce/microprofile-server).
