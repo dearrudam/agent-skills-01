@@ -47,7 +47,7 @@ void main(String... args) throws Exception {
     IO.println("Skills development install");
     IO.println("Source: " + sourceSkillsDirectory);
     IO.println("Target: " + options.targetDirectory());
-    IO.println("Mode:   " + options.mode().value);
+    IO.println("Mode:   " + options.mode());
     IO.println();
 
     var summary = InstallSummary.NONE;
@@ -285,12 +285,6 @@ record InstallSummary(
 }
 
 enum InstallMode {
-    symlink("symlink"),
-    copy("copy");
-
-    String value;
-
-    InstallMode(String value) {
-        this.value = value;
-    }
+    symlink,
+    copy
 }
